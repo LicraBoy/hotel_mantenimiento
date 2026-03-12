@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hotel Mantenimiento{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-layout">
+
+        <!-- ── Sidebar ──────────────────────────────── -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">🏨</div>
+                <div>
+                    <div class="brand-text">Hotel Mantenimiento</div>
+                    <div class="brand-sub">Sistema de Gestión</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">Principal</div>
+                <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+                    <i data-lucide="layout-dashboard"></i>
+                    Dashboard
+                </a>
+                <a href="/habitaciones" class="nav-link {% if active_page == 'habitaciones' %}active{% endif %}">
+                    <i data-lucide="bed-double"></i>
+                    Habitaciones
+                </a>
+
+                {% if session.get('rol') == 'admin' %}
+                <div class="nav-section">Gestión</div>
+                <a href="/mantenimientos" class="nav-link {% if active_page == 'mantenimientos' %}active{% endif %}">
+                    <i data-lucide="wrench"></i>
+                    Mantenimientos
+                </a>
+                <a href="/historial" class="nav-link {% if active_page == 'historial' %}active{% endif %}">
+                    <i data-lucide="clock"></i>
+                    Historial
+                </a>
+                <a href="/analisis" class="nav-link {% if active_page == 'analisis' %}active{% endif %}">
+                    <i data-lucide="bar-chart-3"></i>
+                    Análisis
+                </a>
+                <a href="/reporte" class="nav-link {% if active_page == 'reporte' %}active{% endif %}">
+                    <i data-lucide="file-text"></i>
+                    Reportes
+                </a>
+                {% endif %}
+
+                <div class="nav-section">Trabajo</div>
+                <a href="/mis_tareas" class="nav-link {% if active_page == 'mis_tareas' %}active{% endif %}">
+                    <i data-lucide="clipboard-list"></i>
+                    Mis Tareas
+                </a>
+
+                <div class="nav-section">Inteligencia Artificial</div>
+                <a href="/predicciones" class="nav-link {% if active_page == 'predicciones' %}active{% endif %}">
+                    <i data-lucide="brain"></i>
+                    Predicciones
+                </a>
+                <a href="/vision" class="nav-link {% if active_page == 'vision' %}active{% endif %}">
+                    <i data-lucide="camera"></i>
+                    Visión
+                </a>
+                <a href="/limpieza" class="nav-link {% if active_page == 'limpieza' %}active{% endif %}">
+                    <i data-lucide="sparkles"></i>
+                    Limpieza
+                </a>
+
+                {% if session.get('rol') == 'admin' %}
+                <div class="nav-section">Admin</div>
+                <a href="/admin/usuarios" class="nav-link {% if active_page == 'admin_usuarios' %}active{% endif %}">
+                    <i data-lucide="users"></i>
+                    Usuarios
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/perfil" class="sidebar-user" style="text-decoration:none;">
+                    <div class="user-avatar">{{ session.get('user', 'U')[0] | upper }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ session.get('user', 'Usuario') }}</div>
+                        <div class="user-role">{{ session.get('rol', 'empleado') }}</div>
+                    </div>
+                </a>
+                <a href="/logout" class="nav-link" style="margin-top:8px; color: var(--red);">
+                    <i data-lucide="log-out"></i>
+                    Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- ── Main Content ─────────────────────────── -->
+        <main class="main-content">
+            <div class="page-wrapper">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for msg in messages %}
+                <div class="flash-msg" data-aos="fade-down">{{ msg }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ── Mobile Navigation ────────────────────── -->
+    <nav class="mobile-nav">
+        <a href="/dashboard" class="{% if active_page == 'dashboard' %}active{% endif %}">
+            <i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i>
+            Inicio
+        </a>
+        <a href="/habitaciones" class="{% if active_page == 'habitaciones' %}active{% endif %}">
+            <i data-lucide="bed-double" style="width:18px;height:18px;"></i>
+            Habitaciones
+        </a>
+        <a href="/mis_tareas" class="{% if active_page == 'mis_tareas' %}active{% endif %}">
+            <i data-lucide="clipboard-list" style="width:18px;height:18px;"></i>
+            Tareas
+        </a>
+        <a href="/perfil" class="{% if active_page == 'perfil' %}active{% endif %}">
+            <i data-lucide="user" style="width:18px;height:18px;"></i>
+            Perfil
+        </a>
+    </nav>
+
+    <!-- ── Scripts ──────────────────────────────── -->
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+    <script>
+        AOS.init({ duration: 500, easing: 'ease-out', once: true, offset: 40 });
+        lucide.createIcons();
+
+        // Socket.IO Real-time Notifications
+        const socket = io();
+        socket.on('alerta_global', function(data) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.position = 'fixed';
+                container.style.bottom = '20px';
+                container.style.right = '20px';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'flash-msg';
+            toast.style.margin = '10px 0';
+            toast.style.background = data.tipo === 'mantenimiento' ? 'var(--red)' : 'var(--primary)';
+            toast.style.color = '#fff';
+            toast.style.fontWeight = '600';
+            toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+            toast.style.transition = 'opacity 0.5s ease';
+            toast.innerHTML = `🔔 ${data.mensaje}`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 6000);
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

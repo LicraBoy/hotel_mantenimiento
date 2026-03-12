@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% set active_page = 'predicciones' %}
+{% block title %}Predicciones IA — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>🤖 Predicción de Fallas</h1>
+        <span class="subtitle">Machine Learning — Decision Tree + Random Forest</span>
+    </div>
+    <div class="topbar-actions">
+        <form method="POST" action="/predicciones/generar-dataset" style="display:inline;">
+            <button class="btn btn-outline btn-sm">📊 Generar Dataset</button>
+        </form>
+        <form method="POST" action="/predicciones/entrenar" style="display:inline;">
+            <button class="btn btn-secondary btn-sm">🧠 Re-entrenar</button>
+        </form>
+        <form method="POST" action="/predicciones/ejecutar" style="display:inline;">
+            <button class="btn btn-primary">⚡ Ejecutar Predicción</button>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">🔮</div>
+        <div class="label">Total Predicciones</div>
+        <div class="value">{{ total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🚨</div>
+        <div class="label">Críticos</div>
+        <div class="value">{{ criticos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">⚠️</div>
+        <div class="label">Alto Riesgo</div>
+        <div class="value">{{ altos }}</div>
+    </div>
+    {% if metricas.get('random_forest') %}
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">🎯</div>
+        <div class="label">Accuracy RF</div>
+        <div class="value">{{ (metricas.random_forest.accuracy * 100) | round(1) }}%</div>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Métricas del Modelo -->
+{% if metricas %}
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="100">
+    {% for modelo_name, m in metricas.items() if modelo_name in ['decision_tree', 'random_forest'] %}
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">{% if modelo_name == 'decision_tree' %}🌳{% else %}🌲{% endif %}</span>
+            {{ 'Decision Tree' if modelo_name == 'decision_tree' else 'Random Forest' }}
+        </div>
+        <div class="card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="stat-card" style="border:none; padding:12px;">
+                    <div class="label">Accuracy</div>
+                    <div class="value" style="font-size:1.2rem; color:var(--primary);">{{ (m.accuracy * 100) | round(1) }}%</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:12px;">
+                    <div class="label">Precision</div>
+                    <div class="value" style="font-size:1.2rem; color:var(--teal);">{{ (m.precision * 100) | round(1) }}%</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:12px;">
+                    <div class="label">Recall</div>
+                    <div class="value" style="font-size:1.2rem; color:var(--amber);">{{ (m.recall * 100) | round(1) }}%</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:12px;">
+                    <div class="label">F1-Score</div>
+                    <div class="value" style="font-size:1.2rem; color:var(--green);">{{ (m.f1_score * 100) | round(1) }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Tabla de Predicciones -->
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">📋</span>
+        Predicciones por Equipo
+        <span class="badge badge-primary" style="margin-left:auto;">{{ total }}</span>
+    </div>
+    <div class="card-body">
+        {% if predicciones %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Habitación</th>
+                        <th>Equipo</th>
+                        <th>7 días</th>
+                        <th>14 días</th>
+                        <th>30 días</th>
+                        <th>Nivel</th>
+                        <th>Modelo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in predicciones %}
+                    <tr>
+                        <td><strong>#{{ p[1] }}</strong></td>
+                        <td>{{ p[2] }}</td>
+                        <td>{{ (p[3] * 100) | round(0) }}%</td>
+                        <td>{{ (p[4] * 100) | round(0) }}%</td>
+                        <td><strong>{{ (p[5] * 100) | round(0) }}%</strong></td>
+                        <td>
+                            <span class="badge {% if p[6] == 'CRÍTICO' %}badge-red{% elif p[6] == 'ALTO' %}badge-amber{% elif p[6] == 'MEDIO' %}priority-media{% else %}badge-green{% endif %}">
+                                {{ p[6] }}
+                            </span>
+                        </td>
+                        <td class="text-sm text-muted">{{ p[7] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🤖</span>
+            <div class="empty-text">Sin predicciones. Haz clic en "Generar Dataset" → "Re-entrenar" → "Ejecutar Predicción"</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Feature Importance -->
+{% if metricas.get('feature_importance') %}
+<div class="card mt-3" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">📊</span>
+        Importancia de Features (Random Forest)
+    </div>
+    <div class="card-body">
+        <canvas id="featureChart" height="200"></canvas>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if metricas.get('feature_importance') %}
+<script>
+    const fi = {{ metricas.feature_importance | tojson }};
+    const labels = Object.keys(fi);
+    const values = Object.values(fi);
+    new Chart(document.getElementById('featureChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Importancia',
+                data: values,
+                backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                borderColor: '#4f46e5',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, grid: { color: '#e2e8f0' } } }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

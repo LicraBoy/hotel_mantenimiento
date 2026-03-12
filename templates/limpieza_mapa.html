@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set active_page = 'limpieza' %}
+{% block title %}Mapa del Hotel — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>🗺️ Mapa de Limpieza del Hotel</h1>
+        <span class="subtitle">Visión general por habitación</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/limpieza" class="btn btn-secondary">← Volver a Cola</a>
+    </div>
+</div>
+
+<style>
+    .hotel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+        padding: 8px 0;
+    }
+    .room-tile {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 12px;
+        text-align: center;
+        transition: all .2s ease;
+        cursor: default;
+    }
+    .room-tile:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+    .room-tile .room-num { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+    .room-tile .room-cat { font-size: .68rem; color: var(--text-muted); margin: 4px 0; }
+    .room-tile .room-score { font-size: .78rem; font-weight: 700; margin-top: 6px; }
+
+    .tile-critico { border-color: var(--red); background: var(--red-bg); }
+    .tile-alto { border-color: var(--amber); background: var(--amber-bg); }
+    .tile-medio { border-color: #fcd34d; background: #fefce8; }
+    .tile-bajo { border-color: var(--green); background: var(--green-bg); }
+    .tile-disponible { border-color: var(--border); background: var(--surface); }
+    .tile-completada { border-color: var(--teal); background: var(--teal-bg); }
+</style>
+
+<!-- Leyenda -->
+<div class="card mb-2" data-aos="fade-up">
+    <div class="card-body" style="display:flex; gap:16px; flex-wrap:wrap; padding:12px 20px;">
+        <span><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:var(--red-bg); border:2px solid var(--red); vertical-align:middle;"></span> Crítico</span>
+        <span><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:var(--amber-bg); border:2px solid var(--amber); vertical-align:middle;"></span> Alto</span>
+        <span><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:#fefce8; border:2px solid #fcd34d; vertical-align:middle;"></span> Medio</span>
+        <span><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:var(--green-bg); border:2px solid var(--green); vertical-align:middle;"></span> Bajo</span>
+        <span><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:var(--teal-bg); border:2px solid var(--teal); vertical-align:middle;"></span> Limpia</span>
+        <span><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:var(--surface); border:2px solid var(--border); vertical-align:middle;"></span> Sin datos</span>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up">
+    <div class="card-body">
+        <div class="hotel-grid">
+            {% for h in habitaciones %}
+            {% set nivel = h[4] or '' %}
+            {% set estado_l = h[5] or '' %}
+            <div class="room-tile {% if estado_l == 'Completada' %}tile-completada{% elif nivel == 'CRÍTICO' %}tile-critico{% elif nivel == 'ALTO' %}tile-alto{% elif nivel == 'MEDIO' %}tile-medio{% elif nivel == 'BAJO' %}tile-bajo{% else %}tile-disponible{% endif %}">
+                <div class="room-num">#{{ h[1] }}</div>
+                <div class="room-cat">{{ h[6] or h[2] }}</div>
+                {% if h[3] %}
+                <div class="room-score">{{ h[3] }} pts</div>
+                {% else %}
+                <div class="room-score text-muted">—</div>
+                {% endif %}
+                {% if nivel %}
+                <span class="badge {% if nivel == 'CRÍTICO' %}badge-red{% elif nivel == 'ALTO' %}badge-amber{% elif nivel == 'MEDIO' %}priority-media{% else %}badge-green{% endif %}" style="margin-top:6px;">
+                    {{ nivel }}
+                </span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

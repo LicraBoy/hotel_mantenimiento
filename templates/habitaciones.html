@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% set active_page = 'habitaciones' %}
+{% block title %}Habitaciones — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Habitaciones</h1>
+        <span class="subtitle">Gestión de habitaciones del hotel</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/habitaciones/nueva" class="btn btn-primary">➕ Nueva Habitación</a>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up">
+    <div class="card-body">
+        {% if habitaciones %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Número</th>
+                        <th>Estado</th>
+                        <th>Predicción IA</th>
+                        <th>Último Mantenimiento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in habitaciones %}
+                    <tr>
+                        <td>{{ h[0] }}</td>
+                        <td><strong><a href="/habitacion/{{ h[1] }}">#{{ h[1] }}</a></strong></td>
+                        <td>
+                            <span class="badge {% if h[2] == 'Disponible' %}badge-green{% elif h[2] == 'En mantenimiento' %}badge-amber{% elif h[2] == 'Pendiente de inspección' %}badge-primary{% else %}badge-red{% endif %}">
+                                {{ h[2] }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if h[4] == 'CRÍTICO' %}
+                                <span class="badge badge-red" title="Falla inminente (IA)">🔥 Crítico</span>
+                            {% elif h[4] == 'ALTO' %}
+                                <span class="badge badge-amber" title="Riesgo alto (IA)">⚠️ Alto</span>
+                            {% elif h[4] == 'MEDIO' %}
+                                <span class="badge" style="background:var(--card-border);color:var(--text-color);" title="Riesgo medio (IA)">Medio</span>
+                            {% else %}
+                                <span class="badge badge-green" title="Riesgo bajo (IA)">✅ Bajo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted text-sm">{{ h[3] or 'Sin registro' }}</td>
+                        <td>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <a href="/habitaciones/editar/{{ h[0] }}" class="btn btn-outline btn-sm">✏️ Editar</a>
+                                <a href="/mantenimiento/nuevo/{{ h[0] }}" class="btn btn-success btn-sm">🛠️ Mantenimiento</a>
+                                {% if session.get('rol') == 'admin' %}
+                                <form method="POST" action="/habitacion/marcar_pendiente/{{ h[0] }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline btn-sm">🔍 Pendiente</button>
+                                </form>
+                                <form id="delete-form-{{ h[0] }}" method="POST" action="/habitaciones/eliminar/{{ h[0] }}" style="display:none;">
+                                    <input type="hidden" name="admin_password" id="delete-pw-{{ h[0] }}">
+                                </form>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('{{ h[0] }}', '{{ h[1] }}')">🗑️</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🏠</span>
+            <div class="empty-text">No hay habitaciones registradas</div>
+            <a href="/habitaciones/nueva" class="btn btn-primary mt-2">➕ Agregar primera habitación</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(id, numero) {
+    const pw = prompt(`¿Eliminar habitación #${numero}?\n\nEsta acción es irreversible.\nIngresa tu contraseña de administrador para confirmar:`);
+    if (pw) {
+        document.getElementById('delete-pw-' + id).value = pw;
+        document.getElementById('delete-form-' + id).submit();
+    }
+}
+</script>
+{% endblock %}

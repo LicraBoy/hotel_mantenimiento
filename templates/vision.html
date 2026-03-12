@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% set active_page = 'vision' %}
+{% block title %}Detección Visual — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>📸 Detección Visual</h1>
+        <span class="subtitle">Análisis de fotos con Inteligencia Artificial</span>
+    </div>
+</div>
+
+<div class="grid-2col" data-aos="fade-up">
+    <!-- Upload Form -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">📤</span>
+            Subir Foto
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/vision/analizar" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Habitación</label>
+                    <select name="habitacion_id" required>
+                        <option value="">Selecciona...</option>
+                        {% for h in habitaciones %}
+                        <option value="{{ h[0] }}">#{{ h[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Foto de la Habitación</label>
+                    <input type="file" name="imagen" accept="image/*" capture="environment" required
+                           style="padding:10px; border:2px dashed var(--border); border-radius:var(--radius-sm); width:100%; cursor:pointer;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">🔍 Analizar Imagen</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">📊</span>
+            Resultados IA
+        </div>
+        <div class="card-body">
+            {% if resultado %}
+            
+            <div style="margin-bottom: 1.5rem;">
+                <img src="{{ imagen_original }}" alt="Imagen Anotada" style="width:100%; border-radius:var(--radius); border:1px solid var(--border);">
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <div style="flex:1; background:var(--bg); padding:15px; border-radius:var(--radius-sm);  border:1px solid var(--border);">
+                    <div class="subtitle" style="margin-bottom:5px;">Estado Detectado</div>
+                    <div style="font-size:1.25rem; font-weight:700; color:
+                        {% if resultado.score_estado == 'REQUIERE_MANTENIMIENTO' %}var(--red)
+                        {% elif resultado.score_estado == 'REQUIERE_LIMPIEZA' %}var(--amber)
+                        {% else %}var(--green){% endif %}">
+                        {{ resultado.score_estado | replace('_', ' ') }}
+                    </div>
+                </div>
+                <div style="flex:1; background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                    <div class="subtitle" style="margin-bottom:5px;">Exactitud (Confianza)</div>
+                    <div style="font-size:1.25rem; font-weight:700; color:var(--text);">
+                        {{ '%.1f' | format(resultado.confianza_promedio * 100) }}%
+                    </div>
+                </div>
+            </div>
+
+            {% if resultado.score_estado == 'REQUIERE_MANTENIMIENTO' %}
+            <div style="margin-bottom:20px;">
+                <a href="/mantenimiento" class="btn btn-primary" style="background-color: var(--red); border-color: var(--red); width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; text-decoration: none;">
+                    <span style="font-size: 1.2rem;">🛠️</span> Crear Orden de Mantenimiento con esta Evidencia
+                </a>
+            </div>
+            {% endif %}
+
+            <h4>Hallazgos Específicos ({{ resultado.total_detecciones }})</h4>
+            {% if resultado.total_detecciones > 0 %}
+            <ul style="list-style:none; padding:0; margin-top:10px;">
+                {% for det in resultado.detecciones %}
+                <li style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--border);">
+                    <div>
+                        <span style="font-weight:600; text-transform:uppercase; font-size:0.85rem; color:
+                             {% if det.clase in ['fuga_agua', 'daño_mueble'] %}var(--red)
+                             {% elif det.clase == 'desorden_leve' %}var(--text)
+                             {% else %}var(--amber){% endif %}; margin-right:10px;">
+                            {{ det.clase | replace('_', ' ') }}
+                        </span>
+                    </div>
+                    <strong>{{ '%.0f' | format(det.confianza * 100) }}%</strong>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">No se identificaron anomalías significativas.</p>
+            {% endif %}
+
+            {% else %}
+            <p class="text-muted" style="text-align:center; padding: 2rem;">
+                Sube una fotografía de la habitación para realizar el análisis visual impulsado por IA.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+{% if resultado and resultado.imagen_anotada %}
+<div id="lightbox" onclick="this.style.display='none'" style="
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,0.85); justify-content:center; align-items:center;
+    cursor:zoom-out; backdrop-filter:blur(4px);
+">
+    <button onclick="document.getElementById('lightbox').style.display='none'" style="
+        position:absolute; top:20px; right:24px; background:none; border:none;
+        color:#fff; font-size:2rem; cursor:pointer; z-index:10000;
+    ">✕</button>
+    <img src="{{ resultado.imagen_anotada }}" alt="Análisis ampliado" style="
+        max-width:92vw; max-height:90vh; border-radius:8px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    ">
+</div>
+{% endif %}
+{% endblock %}

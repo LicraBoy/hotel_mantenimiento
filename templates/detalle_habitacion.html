@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% set active_page = 'habitaciones' %}
+{% block title %}Habitación #{{ habitacion[0] }} — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Habitación #{{ habitacion[0] }}</h1>
+        <span class="subtitle">Estado: <span class="badge {% if habitacion[1] == 'Disponible' %}badge-green{% else %}badge-amber{% endif %}">{{ habitacion[1] }}</span></span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/habitaciones" class="btn btn-secondary">← Volver</a>
+        <a href="/mantenimiento/nuevo/{{ habitacion_id }}" class="btn btn-primary">🛠️ Nuevo Mantenimiento</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🔧</div>
+        <div class="label">Total Fallas</div>
+        <div class="value">{{ total_fallas }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">💰</div>
+        <div class="label">Total Gastado</div>
+        <div class="value">${{ total_gastado }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📅</div>
+        <div class="label">Último Mantenimiento</div>
+        <div class="value text-sm" style="font-size:1rem;">{{ ultima_fecha }}</div>
+    </div>
+</section>
+
+<!-- Timeline -->
+<div class="card" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">📜</span>
+        Línea de Tiempo
+    </div>
+    <div class="card-body">
+        {% if timeline %}
+        {% for t in timeline %}
+        <div class="timeline-item">
+            <div class="timeline-dot {% if t[1] == 'Inspección' %}inspeccion{% else %}mantenimiento{% endif %}"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">{{ t[0] }}</div>
+                <div class="timeline-title">
+                    <span class="badge {% if t[1] == 'Inspección' %}badge-teal{% else %}badge-amber{% endif %}">{{ t[1] }}</span>
+                </div>
+                <div class="timeline-detail">{{ t[2] or 'Sin detalles' }}</div>
+                <div class="text-sm text-muted mt-1">Estado: {{ t[3] }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <div class="empty-text">Sin registros para esta habitación</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

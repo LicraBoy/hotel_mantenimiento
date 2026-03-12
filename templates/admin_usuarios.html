@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% set active_page = 'admin_usuarios' %}
+{% block title %}Gestión de Usuarios — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Gestión de Usuarios</h1>
+        <span class="subtitle">Administrar cuentas del sistema</span>
+    </div>
+</div>
+
+<!-- User List -->
+<div class="card mb-3" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">👥</span>
+        Usuarios Registrados
+        <span class="badge badge-primary" style="margin-left:auto;">{{ usuarios|length }}</span>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Username</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Rol</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    {% for u in usuarios %}
+                    <tr>
+                        <td>{{ u[0] }}</td>
+                        <td><strong>{{ u[1] }}</strong></td>
+                        <td>{{ u[2] or '—' }}</td>
+                        <td class="text-sm">{{ u[3] or '—' }}</td>
+                        <td class="text-sm">{{ u[4] or '—' }}</td>
+                        <td>
+                            <span class="badge {% if u[5] == 'admin' %}role-admin{% else %}role-empleado{% endif %}">
+                                {{ u[5] }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/admin/usuarios/eliminar/{{ u[0] }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar a {{ u[1] }}?')">🗑️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- New User Form -->
+<div class="card" data-aos="fade-up" data-aos-delay="200" style="max-width:650px;">
+    <div class="card-header">
+        <span class="h-icon">➕</span>
+        Nuevo Usuario
+    </div>
+    <div class="card-body">
+        <form method="POST" action="/admin/usuarios/nuevo">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" placeholder="nombre_usuario" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" name="nombre_completo" placeholder="Nombre Apellido">
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select name="rol">
+                        <option value="empleado">Empleado</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" name="telefono" placeholder="+52 123 456 7890">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">👤 Registrar Usuario</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

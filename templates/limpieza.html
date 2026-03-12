@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% set active_page = 'limpieza' %}
+{% block title %}Limpieza Prioritaria — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>🧹 Priorización de Limpieza</h1>
+        <span class="subtitle">Cola inteligente de urgencia</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/limpieza/historial" class="btn btn-secondary">📜 Historial</a>
+        <form method="POST" action="/limpieza/generar-demo" style="display:inline;">
+            <button class="btn btn-outline btn-sm">📊 Demo Data</button>
+        </form>
+        <form method="POST" action="/limpieza/recalcular" style="display:inline;">
+            <button class="btn btn-secondary btn-sm">🔄 Recalcular</button>
+        </form>
+        <a href="/limpieza/nuevo-checkout" class="btn btn-primary">🚪 Nuevo Check-out</a>
+        <a href="/limpieza/mapa" class="btn btn-secondary">🗺️ Ver Mapa</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📋</div>
+        <div class="label">Total</div>
+        <div class="value">{{ total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🚨</div>
+        <div class="label">Críticos</div>
+        <div class="value">{{ criticos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">⏳</div>
+        <div class="label">Pendientes</div>
+        <div class="value">{{ pendientes }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">✅</div>
+        <div class="label">Completadas</div>
+        <div class="value">{{ completadas }}</div>
+    </div>
+</section>
+
+<!-- Cola -->
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">📋</span>
+        Cola Priorizada
+    </div>
+    <div class="card-body">
+        {% if cola %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hab.</th>
+                        <th>Categoría</th>
+                        <th>Score</th>
+                        <th>Urgencia</th>
+                        <th>Estado Visual (IA)</th>
+                        <th>Estado</th>
+                        <th>Check-out</th>
+                        <th>Próx. Check-in</th>
+                        <th>Asignado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in cola %}
+                    <tr>
+                        <td><strong>#{{ c[1] }}</strong></td>
+                        <td>
+                            <span class="badge {% if c[2] == 'Presidencial' %}role-admin{% elif c[2] == 'Suite' %}badge-primary{% elif c[2] == 'Superior' %}badge-teal{% else %}badge-green{% endif %}">
+                                {{ c[2] }}
+                            </span>
+                        </td>
+                        <td><strong>{{ c[3] }}</strong></td>
+                        <td>
+                            <span class="badge {% if c[4] == 'CRÍTICO' %}badge-red{% elif c[4] == 'ALTO' %}badge-amber{% elif c[4] == 'MEDIO' %}priority-media{% else %}badge-green{% endif %}">
+                                {{ c[4] or 'N/A' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if c[10] %}
+                                {% if c[12] %}
+                                <a href="{{ c[12] }}" target="_blank" style="text-decoration: none;">
+                                {% endif %}
+                                <span class="badge {% if c[10] == 'REQUIERE_MANTENIMIENTO' %}badge-red{% elif c[10] == 'REQUIERE_LIMPIEZA' %}badge-amber{% else %}badge-green{% endif %}" title="Confianza IA: {{ '%.0f' | format(c[11] * 100 if c[11] else 0) }}%. Clic para ver foto.">
+                                    {% if c[10] == 'REQUIERE_MANTENIMIENTO' %}📸 Daños{% elif c[10] == 'REQUIERE_LIMPIEZA' %}📸 Sucia{% else %}📸 Limpia{% endif %}
+                                </span>
+                                {% if c[12] %}
+                                </a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-sm text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if c[5] == 'Completada' %}badge-green{% elif c[5] == 'En proceso' %}badge-amber{% else %}badge-primary{% endif %}">
+                                {{ c[5] }}
+                            </span>
+                        </td>
+                        <td class="text-sm text-muted">{{ c[7].strftime('%Y-%m-%d %H:%M') if c[7] else '-' }}</td>
+                        <td class="text-sm text-muted">{{ c[8].strftime('%Y-%m-%d %H:%M') if c[8] else '-' }}</td>
+                        <td>{{ c[6] or '—' }}</td>
+                        <td>
+                            {% if c[5] != 'Completada' %}
+                            <form method="POST" action="/limpieza/completar/{{ c[0] }}" style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm">✅</button>
+                            </form>
+                            <span class="text-muted text-sm">Hecho</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🧹</span>
+            <div class="empty-text">Cola vacía. Haz clic en "Demo Data" para generar datos de prueba, o registra un check-out.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% set active_page = 'mantenimientos' %}
+{% block title %}Mantenimientos — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Mantenimientos</h1>
+        <span class="subtitle">Historial de mantenimientos por habitación</span>
+    </div>
+</div>
+
+{% if habitaciones_mant %}
+{% for numero, registros in habitaciones_mant %}
+<div class="card mb-2" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">🏠</span>
+        Habitación #{{ numero }}
+        <span class="badge badge-primary" style="margin-left:auto;">{{ registros|length }} registros</span>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Fecha</th><th>Tipo</th><th>Elemento</th><th>Descripción</th><th>Técnico</th><th>Estado</th><th>Costo</th><th>Acción</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in registros %}
+                    <tr>
+                        <td class="text-sm">{{ r[1] or '-' }}</td>
+                        <td>{{ r[2] or '-' }}</td>
+                        <td>{{ r[3] or '-' }}</td>
+                        <td class="text-sm">{{ r[4] or '-' }}</td>
+                        <td>{{ r[5] or '-' }}</td>
+                        <td><span class="badge badge-teal">{{ r[6] or 'Pendiente' }}</span></td>
+                        <td><strong>${{ r[7] or 0 }}</strong></td>
+                        <td>
+                            <a href="/mantenimiento/editar/{{ r[0] }}" class="btn btn-outline btn-sm">✏️ Editar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card" data-aos="fade-up">
+    <div class="card-body">
+        <div class="empty-state">
+            <span class="empty-icon">🛠️</span>
+            <div class="empty-text">No hay mantenimientos registrados</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

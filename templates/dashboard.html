@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}Dashboard — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Dashboard</h1>
+        <span class="subtitle">Resumen general del hotel</span>
+    </div>
+    <div class="topbar-actions">
+        <span class="badge {% if rol == 'admin' %}role-admin{% else %}role-empleado{% endif %}" style="padding:5px 14px; font-size:.75rem;">
+            {{ rol | capitalize }}
+        </span>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<section class="stats-grid" data-aos="fade-up" data-aos-delay="100">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">🏠</div>
+        <div class="label">Total Habitaciones</div>
+        <div class="value">{{ total_habitaciones }}</div>
+        <div class="sub">Capacidad del hotel</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">✅</div>
+        <div class="label">Disponibles</div>
+        <div class="value">{{ disponibles }}</div>
+        <div class="sub">Listas para huéspedes</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">🛠️</div>
+        <div class="label">En Mantenimiento</div>
+        <div class="value">{{ mantenimiento }}</div>
+        <div class="sub">Requieren atención</div>
+    </div>
+    {% if rol == 'admin' %}
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">💰</div>
+        <div class="label">Costo Total</div>
+        <div class="value">${{ costo_total }}</div>
+        <div class="sub">Mantenimiento acumulado</div>
+    </div>
+    {% endif %}
+    <div class="stat-card">
+        <div class="icon-wrap icon-teal">🧾</div>
+        <div class="label">Inspecciones Pendientes</div>
+        <div class="value">{{ inspecciones_pendientes }}</div>
+        <div class="sub">Pendientes de revisión</div>
+    </div>
+</section>
+
+<!-- Alerts -->
+{% if alerta %}
+<div class="alert alert-danger" data-aos="fade-up">
+    <span class="alert-icon">🚨</span>
+    <span>{{ alerta }}</span>
+</div>
+{% endif %}
+
+{% if alerta_inspecciones %}
+<div class="alert alert-warning" data-aos="fade-up">
+    <span class="alert-icon">🔎</span>
+    <span>{{ alerta_inspecciones }}</span>
+</div>
+{% endif %}
+
+<!-- Admin: Chart -->
+{% if rol == 'admin' %}
+<div class="card mb-3" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">📈</span>
+        Estado del Hotel
+    </div>
+    <div class="card-body">
+        <div class="chart-wrap" style="max-height: 250px;">
+            <canvas id="hotelChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Predictions Table -->
+<div class="card mb-3" data-aos="fade-up" data-aos-delay="300">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span class="h-icon">🔮</span>
+            Predicción de Riesgo Mantenimiento
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('modal-info-riesgo').style.display='flex'">¿Cómo funciona?</button>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Habitación</th>
+                        <th>Score</th>
+                        <th>Nivel</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in predicciones %}
+                    <tr>
+                        <td><strong>#{{ p[0] }}</strong></td>
+                        <td>{{ "%.1f" | format(p[1]) }}</td>
+                        <td>
+                            <span class="badge {% if p[3] == 'red' %}badge-red{% elif p[3] == 'orange' %}badge-amber{% elif p[3] == 'yellow' %}badge-amber{% else %}badge-green{% endif %}">
+                                {{ p[2] }}
+                            </span>
+                        </td>
+                        <td><a href="/habitacion/{{ p[0] }}" class="btn btn-outline btn-sm">Ver detalle</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Info Riesgo -->
+<div id="modal-info-riesgo" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="max-width: 500px; width: 90%; position: relative;">
+        <button onclick="document.getElementById('modal-info-riesgo').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text);">×</button>
+        <div class="card-header">
+            <span class="h-icon">🧠</span> Lógica de Predicción
+        </div>
+        <div class="card-body" style="font-size: 0.95rem; line-height: 1.5;">
+            <p>El sistema calcula el riesgo de la habitación basándose en su historial matemático:</p>
+            <ul style="margin-top: 0.5rem; margin-bottom: 1rem; padding-left: 1.5rem;">
+                <li><strong style="color:var(--green);">0.0 Base (Bajo):</strong> Cada vez que se le hace un mantenimiento "Preventivo", la habitación se reinicia a 0.</li>
+                <li><strong style="color:var(--amber);">+2.0 Puntos Acumulables:</strong> Por cada mantenimiento "Correctivo" o de "Emergencia" que sufra la habitación, el riesgo sube dos puntos.</li>
+                <li><strong style="color:var(--red);">10.0 Límite (Crítico):</strong> Si la habitación alcanza 5 fallas consecutivas sin mantenimiento preventivo general, el sistema emitirá una alerta Crítica de supervisión obligatoria.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Cost & Ranking -->
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="400">
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">💰</span>
+            Costo Mensual Actual
+        </div>
+        <div class="card-body">
+            <div class="cost-hero">
+                <div class="cost-label">Gasto este mes</div>
+                <div class="cost-value">${{ costo_mensual }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🏆</span>
+            Top 5 Habitaciones Más Costosas
+        </div>
+        <div class="card-body">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Habitación</th><th>Costo</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for r in ranking_costos %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>Hab. #{{ r[0] }}</strong></td>
+                            <td>${{ r[1] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Last Inspections -->
+<div class="card mb-3" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">🔍</span>
+        Últimas Inspecciones
+    </div>
+    <div class="card-body">
+        {% if ultimas_inspecciones %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Habitación</th><th>Empleado</th><th>Fecha</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                    {% for i in ultimas_inspecciones %}
+                    <tr>
+                        <td><strong>#{{ i[0] }}</strong></td>
+                        <td>{{ i[1] }}</td>
+                        <td>{{ i[2] }}</td>
+                        <td>
+                            <span class="badge {% if i[3] == 'Generó mantenimiento' %}badge-amber{% else %}badge-green{% endif %}">
+                                {{ i[3] }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <div class="empty-text">No hay inspecciones recientes</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Employee: Queue -->
+{% if rol == 'empleado' %}
+{% if cola_inspecciones %}
+<div class="card mb-3" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">📋</span>
+        Cola de Inspecciones Pendientes
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Habitación</th><th>Estado</th><th>Acción</th></tr>
+                </thead>
+                <tbody>
+                    {% for h in cola_inspecciones %}
+                    <tr>
+                        <td><strong>#{{ h[1] }}</strong></td>
+                        <td><span class="badge badge-amber">{{ h[2] }}</span></td>
+                        <td><a href="/inspeccion/{{ h[0] }}" class="btn btn-success btn-sm">🔍 Inspeccionar</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if mantenimientos_activos %}
+<div class="card" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">🛠️</span>
+        Mantenimientos Activos
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Habitación</th><th>Elemento</th><th>Descripción</th><th>Prioridad</th><th>Fecha</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in mantenimientos_activos %}
+                    <tr>
+                        <td><strong>#{{ m[0] }}</strong></td>
+                        <td>{{ m[1] or '-' }}</td>
+                        <td>{{ m[2] or '-' }}</td>
+                        <td>
+                            <span class="badge {% if m[3] == 'Crítica' %}priority-critica{% elif m[3] == 'Alta' %}priority-alta{% elif m[3] == 'Media' %}priority-media{% else %}priority-baja{% endif %}">
+                                {{ m[3] or 'Media' }}
+                            </span>
+                        </td>
+                        <td class="text-muted text-sm">{{ m[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Actions -->
+<div class="actions actions-center mt-3" data-aos="fade-up">
+    <a href="/habitaciones" class="btn btn-primary">🏨 Habitaciones</a>
+    {% if rol == 'admin' %}
+    <a href="/mantenimientos" class="btn btn-secondary">🛠️ Mantenimientos</a>
+    <a href="/reporte" class="btn btn-secondary">📄 Reportes</a>
+    {% endif %}
+    <a href="/logout" class="btn btn-danger">🚪 Cerrar Sesión</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ctx = document.getElementById('hotelChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Disponibles', 'En Mantenimiento'],
+                datasets: [{
+                    data: [{{ disponibles | default(0) }}, {{ mantenimiento | default(0) }}],
+                    backgroundColor: ['#10b981', '#f59e0b'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 16, font: { family: 'Inter', size: 12 } } }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

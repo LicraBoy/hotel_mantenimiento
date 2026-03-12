@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% set active_page = 'limpieza' %}
+{% block title %}Historial Limpieza — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1>📜 Historial de Limpiezas Completadas</h1>
+        <span class="subtitle">Bitácora diaria de trabajo de intendencia</span>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <form method="get" action="/limpieza/historial" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label for="fecha" style="font-weight: 500; color: var(--text);">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" value="{{ fecha_actual }}" 
+                class="form-control" style="width: auto;" onchange="this.form.submit()">
+            <a href="/limpieza/historial" class="btn btn-outline" style="padding: 0.4rem 0.8rem;" title="Hoy">Restablecer</a>
+        </form>
+        <a href="/limpieza" class="btn btn-primary">⬅ Volver a Cola</a>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up">
+    <div class="card-body">
+        {% if limpiezas %}
+        
+        <!-- KPI Dashboard -->
+        <div style="display:flex; justify-content:space-between; gap:15px; margin-bottom: 25px;">
+            <div style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:15px; text-align:center;">
+                <h4 style="margin:0; color:var(--text); font-size:0.9rem;">Habitaciones Limpias</h4>
+                <div style="font-size:2rem; font-weight:800; color:var(--green); margin-top:5px;">{{ total_limpias }}</div>
+            </div>
+            <div style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:15px; text-align:center;">
+                <h4 style="margin:0; color:var(--text); font-size:0.9rem;">Requiere Repaso</h4>
+                <div style="font-size:2rem; font-weight:800; color:var(--amber); margin-top:5px;">{{ total_sucias }}</div>
+            </div>
+            <div style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:15px; text-align:center;">
+                <h4 style="margin:0; color:var(--text); font-size:0.9rem;">Requiere Mantenimiento</h4>
+                <div style="font-size:2rem; font-weight:800; color:var(--red); margin-top:5px;">{{ total_mantenimiento }}</div>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Habitación</th>
+                        <th>Categoría</th>
+                        <th>Score Final</th>
+                        <th>Urgencia Inicial</th>
+                        <th>Asignado a</th>
+                        <th>Checkout (Inicio)</th>
+                        <th>Completado (Fin)</th>
+                        <th>Evidencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in limpiezas %}
+                    <tr>
+                        <td>{{ l[0] }}</td>
+                        <td><strong>#{{ l[1] }}</strong></td>
+                        <td>
+                            <span class="badge {% if l[2] == 'Presidencial' %}badge-primary{% elif l[2] == 'Suite' %}badge-teal{% else %}badge-green{% endif %}">
+                                {{ l[2] }}
+                            </span>
+                        </td>
+                        <td>{{ l[3] }}</td>
+                        <td>
+                            <span class="badge {% if l[4] == 'CRÍTICO' %}badge-red{% elif l[4] == 'ALTO' %}badge-amber{% else %}badge-green{% endif %}">
+                                {{ l[4] or 'N/A' }}
+                            </span>
+                        </td>
+                        <td>{{ l[5] or '-' }}</td>
+                        <td class="text-sm text-muted">{{ l[6].strftime('%Y-%m-%d %H:%M') if l[6] else '-' }}</td>
+                        <td class="text-sm" style="color:var(--green); font-weight:600;">{{ l[7].strftime('%H:%M:%S') if l[7] else '-' }}</td>
+                        <td>
+                            {% if l[8] and l[8] != 'SIN_FOTO' %}
+                                <a href="{{ l[8] }}" target="_blank" class="btn btn-outline btn-sm">🖼️ Ver Foto</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🧹</span>
+            <div class="empty-text">No hay limpiezas completadas para el día: <strong>{{ fecha_actual }}</strong></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% set active_page = 'habitaciones' %}
+{% block title %}Editar Habitación — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Editar Habitación #{{ habitacion[1] }}</h1>
+        <span class="subtitle">Actualizar datos de la habitación</span>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up" style="max-width:550px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label>Número de Habitación</label>
+                <input type="text" name="numero" value="{{ habitacion[1] }}" required>
+            </div>
+            <div class="form-group">
+                <label>Estado</label>
+                <select name="estado">
+                    <option value="Disponible" {% if habitacion[2] == 'Disponible' %}selected{% endif %}>Disponible</option>
+                    <option value="En mantenimiento" {% if habitacion[2] == 'En mantenimiento' %}selected{% endif %}>En mantenimiento</option>
+                    <option value="Fuera de servicio" {% if habitacion[2] == 'Fuera de servicio' %}selected{% endif %}>Fuera de servicio</option>
+                    <option value="Pendiente de inspección" {% if habitacion[2] == 'Pendiente de inspección' %}selected{% endif %}>Pendiente de inspección</option>
+                </select>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                <a href="/habitaciones" class="btn btn-secondary">← Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

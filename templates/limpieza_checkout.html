@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set active_page = 'limpieza' %}
+{% block title %}Registrar Check-out — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>🚪 Registrar Check-out</h1>
+        <span class="subtitle">Agregar habitación a la cola de limpieza</span>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up" style="max-width:550px;">
+    <div class="card-body">
+        <form method="POST" action="" id="checkoutForm">
+            <div class="form-group">
+                <label>Habitación</label>
+                <select name="habitacion_id" id="habSelect" required>
+                    <option value="">Selecciona...</option>
+                    {% for h in habitaciones %}
+                    <option value="{{ h[0] }}">#{{ h[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Categoría de Habitación</label>
+                <select name="categoria">
+                    <option value="Estándar">Estándar</option>
+                    <option value="Superior">Superior</option>
+                    <option value="Suite">Suite</option>
+                    <option value="Presidencial">Presidencial</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Próximo Check-in (opcional)</label>
+                <input type="datetime-local" name="checkin_siguiente">
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">✅ Registrar Check-out</button>
+                <a href="/limpieza" class="btn btn-secondary">← Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('habSelect').addEventListener('change', function() {
+        const habId = this.value;
+        if (habId) {
+            document.getElementById('checkoutForm').action = '/limpieza/checkout/' + habId;
+        }
+    });
+</script>
+{% endblock %}

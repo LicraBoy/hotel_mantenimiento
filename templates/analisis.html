@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% set active_page = 'analisis' %}
+{% block title %}Análisis Inteligente — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1>Análisis Inteligente</h1>
+        <span class="subtitle">Estadísticas y patrones de mantenimiento</span>
+    </div>
+    <a href="/analisis/exportar" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:8px;">
+        <i data-lucide="download" style="width:18px;height:18px;"></i> Exportar CSV
+    </a>
+</div>
+
+<!-- KPIs -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🔧</div>
+        <div class="label">Total Fallas</div>
+        <div class="value">{{ total_fallas }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">💰</div>
+        <div class="label">Costo Total</div>
+        <div class="value">${{ costo_total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📊</div>
+        <div class="label">Costo Promedio</div>
+        <div class="value">${{ costo_promedio }}</div>
+    </div>
+</section>
+
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="200">
+    <!-- Top Fallas -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🏆</span>
+            Top 5 Fallas Más Frecuentes
+        </div>
+        <div class="card-body">
+            {% if top_fallas %}
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Elemento</th><th>Ocurrencias</th></tr></thead>
+                    <tbody>
+                        {% for f in top_fallas %}
+                        <tr>
+                            <td><strong>{{ f[0] }}</strong></td>
+                            <td><span class="badge badge-red">{{ f[1] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><span class="empty-icon">📊</span><div class="empty-text">Sin datos suficientes</div></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tendencia Mensual -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">📈</span>
+            Tendencia Mensual
+        </div>
+        <div class="card-body">
+            <canvas id="trendChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Costo por tipo -->
+<div class="card mb-3" data-aos="fade-up" data-aos-delay="300">
+    <div class="card-header">
+        <span class="h-icon">💰</span>
+        Costo Promedio por Tipo de Falla
+    </div>
+    <div class="card-body">
+        {% if costo_por_tipo %}
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Elemento</th><th>Ocurrencias</th><th>Costo Promedio</th><th>Costo Total</th></tr></thead>
+                <tbody>
+                    {% for c in costo_por_tipo %}
+                    <tr>
+                        <td><strong>{{ c[0] }}</strong></td>
+                        <td>{{ c[1] }}</td>
+                        <td>${{ c[2] }}</td>
+                        <td><strong>${{ c[3] }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><span class="empty-icon">📊</span><div class="empty-text">Sin datos</div></div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="400">
+    <!-- Ranking por habitación -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🏠</span>
+            Ranking: Fallas por Habitación
+        </div>
+        <div class="card-body">
+            {% if fallas_por_hab %}
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Habitación</th><th>Fallas</th></tr></thead>
+                    <tbody>
+                        {% for f in fallas_por_hab %}
+                        <tr>
+                            <td><strong>#{{ f[0] }}</strong></td>
+                            <td><span class="badge badge-amber">{{ f[1] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><span class="empty-icon">🏠</span><div class="empty-text">Sin datos</div></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reincidentes -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🔁</span>
+            Habitaciones Reincidentes
+        </div>
+        <div class="card-body">
+            {% if reincidentes %}
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Habitación</th><th>Elemento</th><th>Veces</th></tr></thead>
+                    <tbody>
+                        {% for r in reincidentes %}
+                        <tr>
+                            <td><strong>#{{ r[0] }}</strong></td>
+                            <td>{{ r[1] }}</td>
+                            <td><span class="badge badge-red">{{ r[2] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><span class="empty-icon">✅</span><div class="empty-text">Sin reincidencias detectadas</div></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const labels = [{% for t in tendencia_mensual %}'{{ t[0] }}'{% if not loop.last %},{% endif %}{% endfor %}].reverse();
+    const values = [{% for t in tendencia_mensual %}{{ t[1] }}{% if not loop.last %},{% endif %}{% endfor %}].reverse();
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Fallas',
+                data: values,
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, .08)',
+                fill: true,
+                tension: .4,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: '#4f46e5'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

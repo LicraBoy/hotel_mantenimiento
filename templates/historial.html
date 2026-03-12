@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% set active_page = 'historial' %}
+{% block title %}Historial — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1>Historial de Operaciones</h1>
+        <span class="subtitle">Línea de tiempo global de todos los eventos finalizados</span>
+    </div>
+    <form method="get" action="/historial" style="display: flex; gap: 0.5rem; align-items: center;">
+        <label for="fecha" style="font-weight: 500; color: var(--text);">Filtrar por fecha:</label>
+        <input type="date" id="fecha" name="fecha" value="{{ fecha_actual }}" 
+               class="form-control" style="width: auto;" onchange="this.form.submit()">
+        <a href="/historial" class="btn btn-outline" style="padding: 0.4rem 0.8rem;" title="Hoy">Restablecer</a>
+    </form>
+</div>
+
+{% if eventos %}
+<div class="card mb-2" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">📅</span>
+        Eventos del {{ fecha_actual }}
+        <span class="badge badge-primary" style="margin-left:auto;">{{ eventos|length }} registros encontrados</span>
+    </div>
+    <div class="card-body">
+        {% for e in eventos %}
+        <!-- e[0]=numero, e[1]=fecha, e[2]=tipo, e[3]=detalle, e[4]=responsable, e[5]=estado_final -->
+        <div class="timeline-item">
+            <div class="timeline-dot {% if 'Inspección' in e[2] %}inspeccion{% else %}mantenimiento{% endif %}"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">Habitación #{{ e[0] }}</div>
+                <div class="timeline-title">
+                    <span class="badge {% if 'Inspección' in e[2] %}badge-teal{% else %}badge-amber{% endif %}">{{ e[2] }}</span>
+                </div>
+                <div class="timeline-detail">{{ e[3] or 'Sin detalles' }}</div>
+                <div class="text-sm text-muted mt-1">
+                    👨‍🔧 Responsable: <strong>{{ e[4] or 'No asignado' }}</strong> · 
+                    🏷️ Estado Cierre: <strong style="color:var(--text);">{{ e[5] or '' }}</strong>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card" data-aos="fade-up">
+    <div class="card-body">
+        <div class="empty-state">
+            <span class="empty-icon">📜</span>
+            <div class="empty-text">No hay eventos finalizados para la fecha: <strong>{{ fecha_actual }}</strong></div>
+            <span class="text-sm text-muted mt-1">Intenta seleccionar otra fecha en el calendario superior.</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

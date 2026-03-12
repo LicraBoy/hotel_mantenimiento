@@ -1,0 +1,26 @@
+{
+  "decision_tree": {
+    "accuracy": 1.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0
+  },
+  "random_forest": {
+    "accuracy": 1.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0
+  },
+  "feature_importance": {
+    "tipo_equipo_enc": 0.0,
+    "mes": 0.0,
+    "dia_semana": 0.0,
+    "edad_equipo_dias": 0.0,
+    "dias_desde_anterior": 0.0,
+    "fallas_previas": 0.0,
+    "costo_promedio": 0.0,
+    "severidad_enc": 0.0,
+    "costo": 0.0,
+    "tiempo_reparacion_horas": 0.0
+  }
+}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% set active_page = 'mis_tareas' %}
+{% block title %}Mis Tareas — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Mis Tareas</h1>
+        <span class="subtitle">Cola de trabajo pendiente</span>
+    </div>
+</div>
+
+<!-- Inspecciones Pendientes -->
+<div class="card mb-3" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">🔍</span>
+        Inspecciones Pendientes
+        <span class="badge badge-amber" style="margin-left:auto;">{{ pendientes|length }}</span>
+    </div>
+    <div class="card-body">
+        {% if pendientes %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Habitación</th><th>Estado</th><th>Acción</th></tr>
+                </thead>
+                <tbody>
+                    {% for p in pendientes %}
+                    <tr>
+                        <td><strong>#{{ p[1] }}</strong></td>
+                        <td><span class="badge badge-amber">{{ p[2] }}</span></td>
+                        <td><a href="/inspeccion/{{ p[0] }}" class="btn btn-success btn-sm">🔍 Inspeccionar</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">✅</span>
+            <div class="empty-text">No hay inspecciones pendientes</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Mantenimientos Activos -->
+<div class="card" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">🛠️</span>
+        Mantenimientos Activos
+        <span class="badge badge-red" style="margin-left:auto;">{{ mantenimientos|length }}</span>
+    </div>
+    <div class="card-body">
+        {% if mantenimientos %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Habitación</th><th>Elemento</th><th>Descripción</th><th>Prioridad</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in mantenimientos %}
+                    <tr>
+                        <td><strong>#{{ m[1] }}</strong></td>
+                        <td>{{ m[2] or '-' }}</td>
+                        <td class="text-sm">{{ m[3] or '-' }}</td>
+                        <td>
+                            <span class="badge {% if m[4] == 'Crítica' %}priority-critica{% elif m[4] == 'Alta' %}priority-alta{% elif m[4] == 'Media' %}priority-media{% else %}priority-baja{% endif %}">
+                                {{ m[4] or 'Media' }}
+                            </span>
+                        </td>
+                        <td class="text-muted text-sm">{{ m[5] }}</td>
+                        <td><span class="badge badge-teal">{{ m[6] or 'Pendiente' }}</span></td>
+                        <td>
+                            <a href="/mantenimiento/editar/{{ m[0] }}" class="btn btn-primary btn-sm">📝 Atender Falla</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🎉</span>
+            <div class="empty-text">No hay mantenimientos activos</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

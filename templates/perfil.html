@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% set active_page = 'perfil' %}
+{% block title %}Mi Perfil — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Mi Perfil</h1>
+        <span class="subtitle">Administra tu información personal</span>
+    </div>
+</div>
+
+<div class="grid-2col" data-aos="fade-up">
+    <!-- Profile Info Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">👤</span>
+            Información de la Cuenta
+        </div>
+        <div class="card-body" style="text-align:center; padding:30px;">
+            <div style="width:70px; height:70px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--teal)); display:inline-grid; place-items:center; color:#fff; font-size:1.8rem; font-weight:800; margin-bottom:16px;">
+                {{ usuario[1][0] | upper }}
+            </div>
+            <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">{{ usuario[2] or usuario[1] }}</h3>
+            <p class="text-muted text-sm">@{{ usuario[1] }}</p>
+            <span class="badge {% if usuario[5] == 'admin' %}role-admin{% else %}role-empleado{% endif %}" style="padding:4px 12px; margin-top:8px;">
+                {{ usuario[5] | capitalize }}
+            </span>
+
+            <div style="margin-top:20px; text-align:left;">
+                {% if usuario[3] %}
+                <p style="font-size:.85rem; color:var(--text-secondary); padding:6px 0; border-bottom:1px solid var(--border);">
+                    📧 {{ usuario[3] }}
+                </p>
+                {% endif %}
+                {% if usuario[4] %}
+                <p style="font-size:.85rem; color:var(--text-secondary); padding:6px 0;">
+                    📱 {{ usuario[4] }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">✏️</span>
+            Editar Perfil
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" name="nombre_completo" value="{{ usuario[2] or '' }}" placeholder="Tu nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ usuario[3] or '' }}" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" name="telefono" value="{{ usuario[4] or '' }}" placeholder="+52 123 456 7890">
+                </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña <span class="text-muted text-sm">(dejar vacío para no cambiar)</span></label>
+                    <input type="password" name="nueva_password" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">💾 Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

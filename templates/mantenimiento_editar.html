@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% set active_page = 'mantenimientos' %}
+{% block title %}Editar Mantenimiento — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Editar Mantenimiento</h1>
+        <span class="subtitle">Actualizar información de la tarea</span>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up" style="max-width:650px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select name="tipo" required>
+                        <option value="Correctivo" {% if mantenimiento[1] == 'Correctivo' %}selected{% endif %}>Correctivo</option>
+                        <option value="Preventivo" {% if mantenimiento[1] == 'Preventivo' %}selected{% endif %}>Preventivo</option>
+                        <option value="Emergencia" {% if mantenimiento[1] == 'Emergencia' %}selected{% endif %}>Emergencia</option>
+                        {% if not mantenimiento[1] %}
+                            <option value="" selected disabled>Selecciona un tipo</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Elemento</label>
+                    <input type="text" name="elemento" value="{{ mantenimiento[2] or '' }}" placeholder="Ej: Aire acondicionado, Plomería" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="descripcion" placeholder="Describe el problema o trabajo realizado">{{ mantenimiento[3] or '' }}</textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Técnico</label>
+                    <!-- Permite al técnico poner su nombre si estaba vacío -->
+                    <input type="text" name="tecnico" value="{{ mantenimiento[4] or '' }}" placeholder="Nombre del técnico">
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" name="fecha" value="{{ mantenimiento[5] }}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select name="estado">
+                        <option value="En proceso" {% if mantenimiento[6] == 'En proceso' %}selected{% endif %}>En proceso</option>
+                        <option value="Completado" {% if mantenimiento[6] == 'Completado' %}selected{% endif %}>Completado</option>
+                        <option value="Pendiente" {% if mantenimiento[6] == 'Pendiente' or not mantenimiento[6] %}selected{% endif %}>Pendiente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Costo ($)</label>
+                    <input type="number" name="costo" step="0.01" min="0" value="{{ mantenimiento[7] or '0' }}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                 <div class="form-group">
+                    <label>Prioridad</label>
+                    <select name="prioridad">
+                        <option value="Crítica" {% if mantenimiento[8] == 'Crítica' %}selected{% endif %}>Crítica</option>
+                        <option value="Alta" {% if mantenimiento[8] == 'Alta' %}selected{% endif %}>Alta</option>
+                        <option value="Media" {% if mantenimiento[8] == 'Media' %}selected{% endif %}>Media</option>
+                        <option value="Baja" {% if mantenimiento[8] == 'Baja' %}selected{% endif %}>Baja</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; align-items:flex-end;">
+                     <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        <strong>Nota:</strong> Marcar como "Completado" pondrá la habitación como Disponible.
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                <a href="javascript:history.back()" class="btn btn-secondary">← Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

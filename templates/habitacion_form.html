@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set active_page = 'habitaciones' %}
+{% block title %}Nueva Habitación — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>Nueva Habitación</h1>
+        <span class="subtitle">Registrar una nueva habitación en el sistema</span>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up" style="max-width:550px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label>Número de Habitación</label>
+                <input type="text" name="numero" placeholder="Ej: 101, 205, Suite-A" required>
+            </div>
+            <div class="form-group">
+                <label>Estado Inicial</label>
+                <select name="estado">
+                    <option value="Disponible">Disponible</option>
+                    <option value="En mantenimiento">En mantenimiento</option>
+                    <option value="Fuera de servicio">Fuera de servicio</option>
+                </select>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">💾 Guardar Habitación</button>
+                <a href="/habitaciones" class="btn btn-secondary">← Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

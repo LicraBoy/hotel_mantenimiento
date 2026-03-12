@@ -1,0 +1,11 @@
+flask
+psycopg2-binary
+python-dotenv
+reportlab
+scikit-learn
+pandas
+numpy
+joblib
+ultralytics
+opencv-python
+Pillow

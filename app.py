@@ -15,7 +15,7 @@ def crear_app():
     # Ejecutar migración automática de BD
     migrar_bd()
 
-    # Crear tablas de IA si no existen
+    # Crear tablas de IA si no existen estas
     try:
         from database.init_schema_ai import crear_tablas_ai
         crear_tablas_ai()

@@ -94,3 +94,7 @@ La aplicación estará disponible en: [http://localhost:5000](http://localhost:5
 - `/routes`: Lógica de las diferentes secciones (Dashboard, Habitaciones, etc.).
 - `/templates`: Vistas HTML con Jinja2.
 - `/static`: Estilos CSS, scripts JS e imágenes.
+
+
+Prueba de revisión automática con CodeRabbit
+Actualización del proyecto con revisión de IA

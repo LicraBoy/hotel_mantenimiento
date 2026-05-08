@@ -36,9 +36,18 @@
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Técnico</label>
-                    <!-- Permite al técnico poner su nombre si estaba vacío -->
-                    <input type="text" name="tecnico" value="{{ mantenimiento[4] or '' }}" placeholder="Nombre del técnico">
+                    <label>Técnico Asignado</label>
+                    <select name="tecnico">
+                        <option value="">— Sin asignar —</option>
+                        {% for t in tecnicos %}
+                        <option value="{{ t[1] }}" {% if mantenimiento[4] == t[1] %}selected{% endif %}>
+                            {{ t[1] }}{% if t[2] %} · {{ t[2] }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if not tecnicos %}
+                    <small style="color:var(--text-muted);">⚠️ No hay técnicos registrados.</small>
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>

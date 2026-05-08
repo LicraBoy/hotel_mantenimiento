@@ -197,7 +197,14 @@ def nuevo(habitacion_id):
         return redirect("/mantenimientos")
 
     deteccion_id = request.args.get("deteccion_id", "")
-    return render_template("mantenimiento_form.html", habitacion_id=habitacion_id, deteccion_id=deteccion_id)
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nombre, especialidad FROM tecnicos ORDER BY nombre")
+    tecnicos = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template("mantenimiento_form.html", habitacion_id=habitacion_id,
+                           deteccion_id=deteccion_id, tecnicos=tecnicos)
 
 
 # ===============================
@@ -271,13 +278,16 @@ def editar(id):
 
     cursor.execute("SELECT id, tipo, elemento, descripcion, tecnico, fecha, estado, costo, prioridad FROM mantenimiento WHERE id=%s", (id,))
     mantenimiento = cursor.fetchone()
+
+    cursor.execute("SELECT id, nombre, especialidad FROM tecnicos ORDER BY nombre")
+    tecnicos = cursor.fetchall()
     cursor.close()
     conn.close()
 
     if not mantenimiento:
         return redirect("/mantenimientos")
 
-    return render_template("mantenimiento_editar.html", mantenimiento=mantenimiento)
+    return render_template("mantenimiento_editar.html", mantenimiento=mantenimiento, tecnicos=tecnicos)
 
 
 # ===============================
@@ -288,13 +298,33 @@ def cerrar(id):
     if "user" not in session:
         return redirect("/login")
 
+    costo_final = request.form.get("costo_final", "").strip()
+    notas_cierre = request.form.get("notas_cierre", "").strip()
+    tecnico_cierre = request.form.get("tecnico_cierre", "").strip()
+
     conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT habitacion_id FROM mantenimiento WHERE id=%s", (id,))
+    cursor.execute("SELECT habitacion_id, costo, tecnico FROM mantenimiento WHERE id=%s", (id,))
     row = cursor.fetchone()
     if row:
         habitacion_id = row[0]
-        cursor.execute("UPDATE mantenimiento SET estado='Completado' WHERE id=%s", (id,))
+        costo_guardado = float(costo_final) if costo_final else row[1]
+        tecnico_guardado = tecnico_cierre if tecnico_cierre else row[2]
+
+        # Actualizar con notas y costo final si se proporcionaron
+        cursor.execute("""
+            UPDATE mantenimiento
+            SET estado='Completado',
+                costo = %s,
+                tecnico = CASE WHEN %s != '' THEN %s ELSE tecnico END,
+                descripcion = CASE
+                    WHEN %s != '' THEN descripcion || E'\n\n✅ Notas de cierre: ' || %s
+                    ELSE descripcion
+                END
+            WHERE id=%s
+        """, (costo_guardado, tecnico_guardado, tecnico_guardado,
+              notas_cierre, notas_cierre, id))
+
         cursor.execute(
             "SELECT COUNT(*) FROM mantenimiento WHERE habitacion_id=%s AND estado != 'Completado'",
             (habitacion_id,)
@@ -305,6 +335,14 @@ def cerrar(id):
                 WHERE id=%s
             """, (habitacion_id,))
         conn.commit()
+
+        from extensions import socketio
+        socketio.emit('alerta_global', {
+            'tipo': 'mantenimiento',
+            'habitacion_id': habitacion_id,
+            'mensaje': f'Orden #{id} cerrada — Costo final: ${costo_guardado}'
+        })
+
     cursor.close()
     conn.close()
     return redirect(request.referrer or "/mantenimientos")

@@ -76,10 +76,10 @@
                             <div style="display:flex; gap:6px; flex-wrap:wrap;">
                                 <a href="/mantenimiento/editar/{{ r[0] }}" class="btn btn-outline btn-sm">✏️ Editar</a>
                                 {% if r[6] != 'Completado' %}
-                                <form method="POST" action="/mantenimiento/cerrar/{{ r[0] }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-success btn-sm"
-                                            onclick="return confirm('¿Marcar como completado?')">✅ Cerrar</button>
-                                </form>
+                                <button type="button" class="btn btn-success btn-sm"
+                                        onclick="abrirModalCierre({{ r[0] }}, '{{ r[3] or '' }}', {{ r[7] or 0 }})">
+                                    ✅ Cerrar
+                                </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -101,4 +101,81 @@
     </div>
 </div>
 {% endif %}
+
+<!-- ===== MODAL DE CIERRE ===== -->
+<div id="modalCierre" style="
+    display:none; position:fixed; inset:0; z-index:1000;
+    background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+    align-items:center; justify-content:center;">
+    <div style="
+        background:var(--card-bg); border:1px solid var(--border);
+        border-radius:16px; padding:32px; width:100%; max-width:480px;
+        box-shadow:0 24px 60px rgba(0,0,0,0.4); animation:fadeInUp .2s ease;">
+        <h2 style="margin:0 0 6px; font-size:1.25rem;">✅ Cerrar Orden de Mantenimiento</h2>
+        <p id="modalSubtitle" style="margin:0 0 20px; color:var(--text-muted); font-size:.9rem;"></p>
+
+        <form id="formCierre" method="POST">
+            <input type="hidden" name="costo_final" id="inputCostoFinal">
+
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:.85rem; font-weight:600;">Costo Final ($)</label>
+                <input type="number" id="campoCosto" step="0.01" min="0"
+                       style="width:100%; box-sizing:border-box;"
+                       placeholder="0.00"
+                       oninput="document.getElementById('inputCostoFinal').value=this.value">
+            </div>
+
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:.85rem; font-weight:600;">Técnico que resolvió</label>
+                <input type="text" name="tecnico_cierre"
+                       style="width:100%; box-sizing:border-box;"
+                       placeholder="Nombre del técnico (opcional)">
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label style="font-size:.85rem; font-weight:600;">Notas de Cierre <span style="font-weight:400; color:var(--text-muted);">(opcional)</span></label>
+                <textarea name="notas_cierre" rows="3"
+                          style="width:100%; box-sizing:border-box; resize:vertical;"
+                          placeholder="Describe brevemente cómo se resolvió el problema..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-success">✅ Confirmar Cierre</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes fadeInUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+#modalCierre { display:none; }
+#modalCierre.activo { display:flex; }
+</style>
+
+<script>
+function abrirModalCierre(id, elemento, costoActual) {
+    document.getElementById('modalSubtitle').textContent =
+        'Orden #' + id + ' — ' + (elemento || 'Sin elemento');
+    document.getElementById('formCierre').action = '/mantenimiento/cerrar/' + id;
+    document.getElementById('campoCosto').value = costoActual || '';
+    document.getElementById('inputCostoFinal').value = costoActual || '';
+    document.getElementById('modalCierre').classList.add('activo');
+}
+function cerrarModal() {
+    document.getElementById('modalCierre').classList.remove('activo');
+}
+// Cerrar con Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') cerrarModal();
+});
+// Cerrar al click fuera del modal
+document.getElementById('modalCierre').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+});
+</script>
+
 {% endblock %}

@@ -31,7 +31,7 @@ def ejecutar_predicciones_srv(conn, modelo="random_forest"):
 def entrenar_modelos_srv(conn):
     """Entrena modelos Decision Tree y Random Forest."""
     try:
-        from ai.train_model import entrenar
+        from scripts.train_model import entrenar
         resultados = entrenar()
         if resultados:
             return {"resultados": resultados, "exito": True, "mensaje": "Modelos entrenados correctamente"}

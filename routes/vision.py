@@ -57,16 +57,24 @@ def analizar():
         return redirect("/vision")
 
     from datetime import datetime
-    import os
+    import os, imghdr
     from werkzeug.utils import secure_filename
     from ai.detector import analizar_imagen
-    
+
     nombre_base = secure_filename(archivo.filename).rsplit('.', 1)[0]
     nombre = f"hab{habitacion_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{nombre_base}.webp"
     ruta = os.path.join(UPLOAD_DIR, nombre)
-    
+
     from PIL import Image
     try:
+        img = Image.open(archivo)
+        # Verificar que el contenido real sea una imagen válida (no solo la extensión)
+        archivo.seek(0)
+        tipo_real = imghdr.what(archivo)
+        if tipo_real not in ("png", "jpeg", "webp"):
+            flash("⚠️ El archivo no es una imagen válida")
+            return redirect("/vision")
+        archivo.seek(0)
         img = Image.open(archivo)
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
@@ -92,8 +100,17 @@ def analizar():
 
     conn = conectar()
     cursor = conn.cursor()
+
+    # Obtener el id de la detección recién guardada para vincularla a la orden
     cursor.execute("""
-        SELECT h.id, h.numero 
+        SELECT id FROM detecciones_visuales
+        WHERE habitacion_id = %s ORDER BY fecha DESC LIMIT 1
+    """, (int(habitacion_id),))
+    det_row = cursor.fetchone()
+    deteccion_id = det_row[0] if det_row else None
+
+    cursor.execute("""
+        SELECT h.id, h.numero
         FROM habitaciones h
         JOIN limpieza_habitaciones l ON h.id = l.habitacion_id
         WHERE l.estado_limpieza != 'Completada'
@@ -103,6 +120,9 @@ def analizar():
     habitaciones = cursor.fetchall()
     cursor.close()
     conn.close()
+
+    resultado["habitacion_id"] = int(habitacion_id)
+    resultado["deteccion_id"] = deteccion_id
 
     return render_template("vision.html", habitaciones=habitaciones, resultado=resultado, imagen_original=f"/static/uploads/{nombre}")
 

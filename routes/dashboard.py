@@ -174,6 +174,31 @@ def dashboard():
     """)
     mantenimientos_activos = cursor.fetchall()
 
+    # Costos por mes (últimos 6 meses)
+    cursor.execute("""
+        SELECT TO_CHAR(DATE_TRUNC('month', fecha::date), 'Mon YYYY') as mes,
+               COALESCE(SUM(costo), 0) as total
+        FROM mantenimiento
+        WHERE fecha::date >= CURRENT_DATE - INTERVAL '6 months'
+        GROUP BY DATE_TRUNC('month', fecha::date)
+        ORDER BY DATE_TRUNC('month', fecha::date)
+    """)
+    costos_mensuales = cursor.fetchall()
+    labels_costos = [row[0] for row in costos_mensuales]
+    valores_costos = [float(row[1]) for row in costos_mensuales]
+
+    # Distribución por tipo de mantenimiento
+    cursor.execute("""
+        SELECT tipo, COUNT(*) as total
+        FROM mantenimiento
+        WHERE tipo IS NOT NULL
+        GROUP BY tipo
+        ORDER BY total DESC
+    """)
+    tipos_rows = cursor.fetchall()
+    labels_tipos = [row[0] for row in tipos_rows]
+    valores_tipos = [int(row[1]) for row in tipos_rows]
+
     cursor.close()
     conn.close()
 
@@ -192,5 +217,9 @@ def dashboard():
         alerta_inspecciones=alerta_inspecciones,
         rol=session.get('rol', 'empleado'),
         cola_inspecciones=cola_inspecciones,
-        mantenimientos_activos=mantenimientos_activos
+        mantenimientos_activos=mantenimientos_activos,
+        labels_costos=labels_costos,
+        valores_costos=valores_costos,
+        labels_tipos=labels_tipos,
+        valores_tipos=valores_tipos,
     )

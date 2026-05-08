@@ -71,7 +71,8 @@
 
             {% if resultado.score_estado == 'REQUIERE_MANTENIMIENTO' %}
             <div style="margin-bottom:20px;">
-                <a href="/mantenimiento" class="btn btn-primary" style="background-color: var(--red); border-color: var(--red); width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; text-decoration: none;">
+                <a href="/mantenimiento/nuevo/{{ resultado.habitacion_id }}?deteccion_id={{ resultado.deteccion_id or '' }}"
+                   class="btn btn-primary" style="background-color: var(--red); border-color: var(--red); width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; text-decoration: none;">
                     <span style="font-size: 1.2rem;">🛠️</span> Crear Orden de Mantenimiento con esta Evidencia
                 </a>
             </div>

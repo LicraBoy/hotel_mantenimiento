@@ -8,6 +8,44 @@
         <h1>Mantenimientos</h1>
         <span class="subtitle">Historial de mantenimientos por habitación</span>
     </div>
+    <div class="topbar-actions">
+        <a href="/mantenimientos/exportar" class="btn btn-secondary">📥 Exportar Excel</a>
+    </div>
+</div>
+
+<!-- Barra de filtros -->
+<div class="card mb-2" data-aos="fade-up">
+    <div class="card-body" style="padding:12px 16px;">
+        <form method="GET" action="/mantenimientos" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <label style="font-size:.75rem; color:var(--text-muted);">Estado</label>
+                <select name="estado" class="form-control" style="min-width:140px;">
+                    <option value="" {% if not filtro_estado %}selected{% endif %}>Todos (activos)</option>
+                    {% for e in estados %}
+                    <option value="{{ e }}" {% if filtro_estado == e %}selected{% endif %}>{{ e }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <label style="font-size:.75rem; color:var(--text-muted);">Tipo</label>
+                <select name="tipo" class="form-control" style="min-width:140px;">
+                    <option value="" {% if not filtro_tipo %}selected{% endif %}>Todos</option>
+                    {% for t in tipos %}
+                    <option value="{{ t }}" {% if filtro_tipo == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <label style="font-size:.75rem; color:var(--text-muted);">Habitación</label>
+                <input type="text" name="habitacion" class="form-control" placeholder="Ej: 101"
+                       value="{{ filtro_habitacion }}" style="min-width:110px;">
+            </div>
+            <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+            {% if filtro_estado or filtro_tipo or filtro_habitacion %}
+            <a href="/mantenimientos" class="btn btn-secondary">✖ Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
 </div>
 
 {% if habitaciones_mant %}
@@ -35,7 +73,15 @@
                         <td><span class="badge badge-teal">{{ r[6] or 'Pendiente' }}</span></td>
                         <td><strong>${{ r[7] or 0 }}</strong></td>
                         <td>
-                            <a href="/mantenimiento/editar/{{ r[0] }}" class="btn btn-outline btn-sm">✏️ Editar</a>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <a href="/mantenimiento/editar/{{ r[0] }}" class="btn btn-outline btn-sm">✏️ Editar</a>
+                                {% if r[6] != 'Completado' %}
+                                <form method="POST" action="/mantenimiento/cerrar/{{ r[0] }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-success btn-sm"
+                                            onclick="return confirm('¿Marcar como completado?')">✅ Cerrar</button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

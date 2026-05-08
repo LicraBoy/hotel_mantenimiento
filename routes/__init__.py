@@ -9,6 +9,11 @@ from routes.admin import admin_bp
 from routes.predicciones import predicciones_bp
 from routes.vision import vision_bp
 from routes.limpieza import limpieza_bp
+from routes.costos import costos_bp
+from routes.tecnicos import tecnicos_bp
+from routes.automatizacion import automatizacion_bp
+from routes.operaciones import operaciones_bp
+from routes.equipos import equipos_bp
 
 
 def registrar_blueprints(app):
@@ -21,7 +26,13 @@ def registrar_blueprints(app):
     app.register_blueprint(reportes_bp)
     app.register_blueprint(analisis_bp)
     app.register_blueprint(admin_bp)
-    # AI Modules
+    # AI Modules v1
     app.register_blueprint(predicciones_bp)
     app.register_blueprint(vision_bp)
     app.register_blueprint(limpieza_bp)
+    # AI Modules v2
+    app.register_blueprint(costos_bp)
+    app.register_blueprint(tecnicos_bp)
+    app.register_blueprint(automatizacion_bp)
+    app.register_blueprint(operaciones_bp)
+    app.register_blueprint(equipos_bp)

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% set active_page = 'equipos' %}
+{% block title %}Editar Equipo — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>✏️ Editar Equipo</h1>
+        <span class="subtitle">Habitación #{{ equipo[2] }} — {{ equipo[3] }}</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/equipos" class="btn btn-outline">← Volver</a>
+    </div>
+</div>
+
+<div class="card" style="max-width:520px;" data-aos="fade-up">
+    <div class="card-body">
+        <form method="POST" action="/equipos/editar/{{ equipo[0] }}">
+            <div class="form-group">
+                <label>Habitación</label>
+                <select name="habitacion_id" required class="form-control">
+                    {% for hab_id, hab_num in habitaciones %}
+                    <option value="{{ hab_id }}" {% if hab_id == equipo[1] %}selected{% endif %}>
+                        Habitación #{{ hab_num }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Equipo</label>
+                <select name="tipo" id="tipoSelect" required class="form-control" onchange="toggleOtro(this)">
+                    {% for t in tipos %}
+                    <option value="{{ t }}" {% if t == equipo[3] %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                    {% if equipo[3] not in tipos %}
+                    <option value="{{ equipo[3] }}" selected>{{ equipo[3] }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group" id="otroGroup" style="display:none;">
+                <label>Especifica el tipo</label>
+                <input type="text" name="tipo_otro" class="form-control" value="{{ equipo[3] if equipo[3] not in tipos else '' }}">
+            </div>
+            <div class="form-group">
+                <label>Fecha de Instalación</label>
+                <input type="date" name="fecha_instalacion" required class="form-control"
+                       value="{{ equipo[4].strftime('%Y-%m-%d') if equipo[4] else '' }}">
+            </div>
+            <div class="form-group">
+                <label>Vida Útil Estimada (años)</label>
+                <input type="number" name="vida_util_anos" required class="form-control"
+                       min="1" max="50" step="0.5"
+                       value="{{ (equipo[5] / 365) | round(1) if equipo[5] else '' }}">
+            </div>
+            <div style="display:flex; gap:8px; margin-top:16px;">
+                <a href="/equipos" class="btn btn-outline">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleOtro(select) {
+    document.getElementById('otroGroup').style.display = select.value === 'Otro' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

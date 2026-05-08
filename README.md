@@ -1,100 +1,173 @@
 # 🏨 Hotel Mantenimiento
 
-Sistema integral de gestión de mantenimiento hotelero construido con **Flask** y **PostgreSQL**. Este sistema permite gestionar habitaciones, reportar fallas, realizar inspecciones y generar reportes analíticos avanzados.
+> Sistema integral de gestión de mantenimiento hotelero con **Inteligencia Artificial** integrada.
 
-## 📋 Requisitos Previos
-
-Antes de instalar el proyecto, asegúrate de tener instalado:
-
-- [Python 3.12](https://www.python.org/downloads/) o superior.
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (para la base de datos PostgreSQL).
-- [Git](https://git-scm.com/downloads) (opcional, para clonar el repositorio).
+[![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.x-black?logo=flask)](https://flask.palletsprojects.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?logo=postgresql)](https://postgresql.org)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://docker.com)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
-## 🚀 Guía de Instalación en otra PC
+## 📌 Descripción
 
-Sigue estos pasos para poner en marcha el proyecto desde cero:
+**Hotel Mantenimiento** es una plataforma web completa para la gestión operacional de hoteles. Permite controlar habitaciones, reportar y hacer seguimiento de fallas, gestionar técnicos, planificar inspecciones y generar reportes analíticos. Incluye módulos de **IA y visión computacional** para detección de problemas, predicción de mantenimiento y priorización inteligente de tareas.
 
-### 1. Preparar el Proyecto
-Descarga el código o clona el repositorio:
+---
+
+## ✨ Funcionalidades Principales
+
+| Módulo | Descripción |
+|---|---|
+| 🏠 **Habitaciones** | Gestión completa del estado de habitaciones |
+| 🔧 **Mantenimiento** | Registro, seguimiento y cierre de órdenes de trabajo |
+| 🔍 **Inspecciones** | Control de calidad e inspecciones programadas |
+| 🧹 **Limpieza** | Hoja de limpieza con priorización por IA |
+| 🤖 **Predicciones** | Mantenimiento predictivo con Machine Learning |
+| 👁️ **Visión IA** | Detección visual de daños con YOLOv8 |
+| 💰 **Costos** | Análisis y predicción de costos de mantenimiento |
+| 👷 **Técnicos** | Gestión de técnicos con recomendación automática |
+| ⚙️ **Automatización** | Flujos y reglas de trabajo automatizados |
+| 📊 **Análisis** | Dashboard de inteligencia analítica y KPIs |
+| 🛠️ **Equipos** | Inventario y seguimiento de equipos/activos |
+
+---
+
+## 🛠️ Stack Tecnológico
+
+- **Backend**: Flask 3.x (Blueprints, SocketIO, CSRF, Rate Limiting)
+- **Base de datos**: PostgreSQL 16 (via psycopg2)
+- **IA / ML**: Ultralytics YOLOv8, scikit-learn
+- **Tiempo real**: Flask-SocketIO (WebSockets)
+- **Seguridad**: Werkzeug password hashing, Flask-WTF, Flask-Limiter
+- **Reportes**: ReportLab (PDF)
+- **Contenedores**: Docker & Docker Compose
+
+---
+
+## 📋 Requisitos Previos
+
+- [Python 3.12+](https://www.python.org/downloads/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (para PostgreSQL)
+- [Git](https://git-scm.com/downloads)
+
+---
+
+## 🚀 Instalación
+
+### 1. Clonar el repositorio
+
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/LicraBoy/hotel_mantenimiento.git
 cd hotel_mantenimiento
 ```
 
-### 2. Crear y Activar Entorno Virtual
-Es recomendable usar un entorno virtual para no interferir con otras instalaciones de Python:
+### 2. Crear entorno virtual
 
-**En Windows:**
 ```bash
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Linux / macOS
 ```
 
-### 3. Instalar Dependencias
-Instala todas las librerías necesarias con el archivo que acabamos de actualizar:
+### 3. Instalar dependencias
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configurar Variables de Entorno
-Crea un archivo llamado `.env` en la raíz del proyecto (puedes copiar el contenido de `.env.example` si existe):
+### 4. Configurar variables de entorno
 
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hotel_mantenimiento
-SECRET_KEY=tu_clave_secreta_aqui
+```bash
+copy .env.example .env       # Windows
+# cp .env.example .env       # Linux / macOS
 ```
 
-### 5. Levantar la Base de Datos (Docker)
-Asegúrate de que Docker Desktop esté abierto y ejecuta:
+Edita `.env` con tus valores:
+
+```env
+DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/hotel_mantenimiento
+SECRET_KEY=tu_clave_secreta_segura
+```
+
+> 💡 Genera una `SECRET_KEY` segura con:
+> ```bash
+> python -c "import secrets; print(secrets.token_hex(32))"
+> ```
+
+### 5. Levantar la base de datos (Docker)
+
 ```bash
 docker-compose up -d
 ```
-*Esto descargará la imagen de PostgreSQL y levantará el contenedor automáticamente.*
 
-### 6. Inicializar la Base de Datos
-Para crear las tablas necesarias, ejecuta:
+### 6. Ejecutar la aplicación
+
 ```bash
 python app.py
 ```
-*El sistema detectará automáticamente si faltan tablas y las creará al iniciar.* 
+
+Las tablas se crean automáticamente al iniciar. La aplicación estará disponible en:
+**http://localhost:5000**
 
 ---
 
-## 💻 Uso de la Aplicación
+## 📁 Estructura del Proyecto
 
-Para ejecutar el servidor de desarrollo:
-```bash
-python app.py
 ```
-La aplicación estará disponible en: [http://localhost:5000](http://localhost:5000)
-
-### 👤 Usuarios de Prueba
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| `admin` | `admin` | Administrador |
-| `empleado1` | `empleado1` | Empleado |
+hotel_mantenimiento/
+├── app.py                  # Entry point + Application Factory
+├── config.py               # Configuración (SECRET_KEY, DB, seguridad)
+├── extensions.py           # SocketIO, CSRF, Limiter
+├── docker-compose.yml      # Contenedor PostgreSQL
+├── requirements.txt        # Dependencias Python
+├── .env.example            # Plantilla de variables de entorno
+│
+├── ai/                     # Módulos de Inteligencia Artificial
+│   ├── predictor.py        # Predicción de fallas
+│   ├── cost_predictor.py   # Predicción de costos
+│   ├── detector.py         # Detección visual (YOLOv8)
+│   ├── scoring_engine.py   # Motor de puntuación
+│   ├── maintenance_scheduler.py
+│   └── technician_recommender.py
+│
+├── database/               # Capa de datos
+│   ├── db.py               # Conexión PostgreSQL
+│   ├── init_schema.py      # Schema principal
+│   └── init_schema_ai*.py  # Schema módulos IA
+│
+├── routes/                 # Blueprints Flask (16 módulos)
+├── templates/              # Vistas HTML (Jinja2)
+├── static/                 # CSS, JS, imágenes
+└── utils/                  # Utilidades (email, etc.)
+```
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🔐 Seguridad
 
-- **Backend**: Flask 3.x
-- **Base de Datos**: PostgreSQL 16
-- **Contenedores**: Docker & Docker Compose
-- **IA/Visión**: OpenCV, Ultralytics (YOLOv8)
-- **Reportes**: ReportLab (Generación de PDF)
+- ✅ Passwords hasheados con Werkzeug (scrypt/pbkdf2)
+- ✅ Protección CSRF en todos los formularios
+- ✅ Rate limiting por IP
+- ✅ Security headers (X-Frame-Options, XSS Protection, etc.)
+- ✅ Control de acceso por roles (`admin` / `empleado`)
+- ✅ Sesiones seguras con HttpOnly y SameSite cookies
+
+> ⚠️ **Nunca subas tu archivo `.env` al repositorio.** Ya está excluido en `.gitignore`.
 
 ---
 
-## 📁 Estructura Principal
-- `/ai`: Módulos de inteligencia artificial.
-- `/database`: Configuración de conexión y modelos.
-- `/routes`: Lógica de las diferentes secciones (Dashboard, Habitaciones, etc.).
-- `/templates`: Vistas HTML con Jinja2.
-- `/static`: Estilos CSS, scripts JS e imágenes.
+## 🤝 Contribuciones
 
+1. Haz fork del proyecto
+2. Crea tu rama (`git checkout -b feature/nueva-funcionalidad`)
+3. Haz commit de tus cambios (`git commit -m 'Add: nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
 
-Prueba de revisión automática con CodeRabbit
-Actualización del proyecto con revisión de IA
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.

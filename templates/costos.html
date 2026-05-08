@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% set active_page = 'costos' %}
+{% block title %}Predicción de Costos — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>💰 Predicción de Costos</h1>
+        <span class="subtitle">Gradient Boosting Regressor — Estima costos futuros de reparación</span>
+    </div>
+    <div class="topbar-actions">
+        {% if session.get('rol') == 'admin' %}
+        <form method="POST" action="/costos/entrenar" style="display:inline;">
+            <button class="btn btn-secondary btn-sm">🧠 Entrenar Modelo</button>
+        </form>
+        {% endif %}
+        <form method="POST" action="/costos/ejecutar" style="display:inline;">
+            <button class="btn btn-primary">⚡ Ejecutar Predicción</button>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📊</div>
+        <div class="label">Total Predicciones</div>
+        <div class="value">{{ total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">💸</div>
+        <div class="label">Costo Total Estimado</div>
+        <div class="value">${{ "{:,.0f}".format(costo_total) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">📈</div>
+        <div class="label">Costo Promedio</div>
+        <div class="value">${{ "{:,.0f}".format(costo_promedio) }}</div>
+    </div>
+    {% if metricas.get('r2') is not none %}
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">🎯</div>
+        <div class="label">R² Score</div>
+        <div class="value">{{ (metricas.r2 * 100) | round(1) }}%</div>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Métricas del modelo -->
+{% if metricas %}
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">🧠</span>
+        Rendimiento del Modelo (Gradient Boosting)
+    </div>
+    <div class="card-body">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px;">
+            <div class="stat-card" style="border:none; padding:12px;">
+                <div class="label">R² Score</div>
+                <div class="value" style="font-size:1.2rem; color:var(--primary);">{{ (metricas.r2 * 100) | round(1) }}%</div>
+            </div>
+            <div class="stat-card" style="border:none; padding:12px;">
+                <div class="label">MAE (Error Abs.)</div>
+                <div class="value" style="font-size:1.2rem; color:var(--teal);">${{ metricas.mae }}</div>
+            </div>
+            <div class="stat-card" style="border:none; padding:12px;">
+                <div class="label">RMSE</div>
+                <div class="value" style="font-size:1.2rem; color:var(--amber);">${{ metricas.rmse }}</div>
+            </div>
+            <div class="stat-card" style="border:none; padding:12px;">
+                <div class="label">Muestras Entrenamiento</div>
+                <div class="value" style="font-size:1.2rem; color:var(--green);">{{ metricas.samples }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Tabla de predicciones -->
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">📋</span>
+        Predicciones de Costo por Equipo
+        <span class="badge badge-primary" style="margin-left:auto;">{{ total }}</span>
+    </div>
+    <div class="card-body">
+        {% if predicciones %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Habitación</th>
+                        <th>Equipo</th>
+                        <th>Costo Estimado</th>
+                        <th>Rango Mín.</th>
+                        <th>Rango Máx.</th>
+                        <th>Confianza</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in predicciones %}
+                    <tr>
+                        <td><strong>#{{ p[1] }}</strong></td>
+                        <td>{{ p[2] }}</td>
+                        <td><strong>${{ "%.0f" | format(p[3]) }}</strong></td>
+                        <td class="text-sm text-muted">${{ "%.0f" | format(p[4]) }}</td>
+                        <td class="text-sm text-muted">${{ "%.0f" | format(p[5]) }}</td>
+                        <td>
+                            {% set conf = (p[6] * 100) | round(0) %}
+                            <span class="badge {% if conf >= 70 %}badge-green{% elif conf >= 40 %}badge-amber{% else %}badge-red{% endif %}">
+                                {{ conf }}%
+                            </span>
+                        </td>
+                        <td class="text-sm text-muted">{{ p[7].strftime('%Y-%m-%d %H:%M') if p[7] else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">💰</span>
+            <div class="empty-text">Sin predicciones de costo. Haz clic en "Entrenar Modelo" → "Ejecutar Predicción"</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Feature Importance -->
+{% if metricas.get('feature_importance') %}
+<div class="card mt-3" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">📊</span>
+        Factores que más influyen en el costo
+    </div>
+    <div class="card-body">
+        <canvas id="costFeatureChart" height="200"></canvas>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if metricas.get('feature_importance') %}
+<script>
+    const fi = {{ metricas.feature_importance | tojson }};
+    const labels = Object.keys(fi);
+    const values = Object.values(fi);
+    new Chart(document.getElementById('costFeatureChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Importancia',
+                data: values,
+                backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                borderColor: '#10b981',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, grid: { color: '#e2e8f0' } } }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

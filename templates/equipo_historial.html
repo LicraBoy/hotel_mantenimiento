@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% set active_page = 'equipos' %}
+{% block title %}Historial — {{ equipo[1] }} Hab #{{ equipo[2] }}{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>📋 Historial de Equipo</h1>
+        <span class="subtitle">{{ equipo[1] }} — Habitación #{{ equipo[2] }}</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/equipos" class="btn btn-outline">← Volver a Equipos</a>
+    </div>
+</div>
+
+<!-- Info del equipo -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">⚙️</div>
+        <div class="label">Tipo</div>
+        <div class="value" style="font-size:1rem;">{{ equipo[1] }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">🏨</div>
+        <div class="label">Habitación</div>
+        <div class="value">#{{ equipo[2] }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📅</div>
+        <div class="label">Instalado</div>
+        <div class="value" style="font-size:1rem;">{{ equipo[3].strftime('%d/%m/%Y') if equipo[3] else '—' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap {% if pct_vida and pct_vida >= 80 %}icon-red{% else %}icon-green{% endif %}">
+            {% if pct_vida and pct_vida >= 80 %}🚨{% else %}✅{% endif %}
+        </div>
+        <div class="label">Vida Útil Consumida</div>
+        <div class="value">{{ pct_vida }}%</div>
+    </div>
+</section>
+
+<!-- Registro de Fallas -->
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">⚠️</span>
+        Registro de Fallas
+        <span class="badge badge-primary" style="margin-left:auto;">{{ fallas | length }}</span>
+    </div>
+    <div class="card-body">
+        {% if fallas %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha Falla</th>
+                        <th>Tipo</th>
+                        <th>Severidad</th>
+                        <th>Costo</th>
+                        <th>Tiempo Rep. (h)</th>
+                        <th>Técnico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fallas %}
+                    <tr>
+                        <td>{{ f[0].strftime('%d/%m/%Y') if f[0] else '—' }}</td>
+                        <td>{{ f[1] or '—' }}</td>
+                        <td>
+                            <span class="badge {% if f[2] == 'alta' or f[2] == 'Alta' %}badge-red{% elif f[2] == 'media' or f[2] == 'Media' %}badge-amber{% else %}badge-green{% endif %}">
+                                {{ f[2] or '—' }}
+                            </span>
+                        </td>
+                        <td>{{ "$%.0f" | format(f[3]) if f[3] else '—' }}</td>
+                        <td>{{ f[4] or '—' }}</td>
+                        <td>{{ f[5] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">✅</span>
+            <div class="empty-text">Sin fallas registradas para este equipo.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Órdenes de Mantenimiento Relacionadas -->
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">🛠️</span>
+        Órdenes de Mantenimiento
+        <span class="badge badge-primary" style="margin-left:auto;">{{ ordenes | length }}</span>
+    </div>
+    <div class="card-body">
+        {% if ordenes %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Elemento</th>
+                        <th>Descripción</th>
+                        <th>Técnico</th>
+                        <th>Estado</th>
+                        <th>Costo</th>
+                        <th>Prioridad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in ordenes %}
+                    <tr>
+                        <td class="text-sm">{{ o[0] }}</td>
+                        <td>{{ o[1] }}</td>
+                        <td>{{ o[2] }}</td>
+                        <td class="text-sm text-muted">{{ (o[3] or '')[:60] }}{% if o[3] and o[3]|length > 60 %}…{% endif %}</td>
+                        <td>{{ o[4] or '—' }}</td>
+                        <td>
+                            <span class="badge {% if o[5] == 'Completado' %}badge-green{% elif o[5] == 'En proceso' %}badge-amber{% else %}priority-media{% endif %}">
+                                {{ o[5] or '—' }}
+                            </span>
+                        </td>
+                        <td>{{ "$%.0f" | format(o[6]) if o[6] else '—' }}</td>
+                        <td>
+                            <span class="badge {% if o[7] == 'Crítica' %}badge-red{% elif o[7] == 'Alta' %}badge-amber{% else %}priority-media{% endif %}">
+                                {{ o[7] or 'Media' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🛠️</span>
+            <div class="empty-text">Sin órdenes de mantenimiento relacionadas.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

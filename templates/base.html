@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Hotel Mantenimiento{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -64,10 +65,20 @@
                 </a>
 
                 <div class="nav-section">Inteligencia Artificial</div>
+                {% if session.get('rol') == 'admin' %}
+                <a href="/operaciones" class="nav-link {% if active_page == 'operaciones' %}active{% endif %}">
+                    <i data-lucide="target"></i>
+                    Centro de Operaciones
+                </a>
                 <a href="/predicciones" class="nav-link {% if active_page == 'predicciones' %}active{% endif %}">
                     <i data-lucide="brain"></i>
                     Predicciones
                 </a>
+                <a href="/costos" class="nav-link {% if active_page == 'costos' %}active{% endif %}">
+                    <i data-lucide="dollar-sign"></i>
+                    Costos IA
+                </a>
+                {% endif %}
                 <a href="/vision" class="nav-link {% if active_page == 'vision' %}active{% endif %}">
                     <i data-lucide="camera"></i>
                     Visión
@@ -76,9 +87,23 @@
                     <i data-lucide="sparkles"></i>
                     Limpieza
                 </a>
+                <a href="/tecnicos" class="nav-link {% if active_page == 'tecnicos' %}active{% endif %}">
+                    <i data-lucide="hard-hat"></i>
+                    Técnicos
+                </a>
+                {% if session.get('rol') == 'admin' %}
+                <a href="/automatizacion" class="nav-link {% if active_page == 'automatizacion' %}active{% endif %}">
+                    <i data-lucide="calendar-clock"></i>
+                    Auto-Programación
+                </a>
+                {% endif %}
 
                 {% if session.get('rol') == 'admin' %}
                 <div class="nav-section">Admin</div>
+                <a href="/equipos" class="nav-link {% if active_page == 'equipos' %}active{% endif %}">
+                    <i data-lucide="cpu"></i>
+                    Equipos
+                </a>
                 <a href="/admin/usuarios" class="nav-link {% if active_page == 'admin_usuarios' %}active{% endif %}">
                     <i data-lucide="users"></i>
                     Usuarios
@@ -176,6 +201,26 @@
                 setTimeout(() => toast.remove(), 500);
             }, 6000);
         });
+    </script>
+    <!-- CSRF: inyecta token en todos los forms POST automáticamente -->
+    <script>
+    (function() {
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) return;
+        const token = csrfMeta.getAttribute('content');
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.method && form.method.toLowerCase() === 'post') {
+                if (!form.querySelector('input[name="csrf_token"]')) {
+                    const inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'csrf_token';
+                    inp.value = token;
+                    form.appendChild(inp);
+                }
+            }
+        }, true);
+    })();
     </script>
     {% block scripts %}{% endblock %}
 </body>

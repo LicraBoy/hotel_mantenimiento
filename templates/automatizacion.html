@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% set active_page = 'automatizacion' %}
+{% block title %}Auto-Programación — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>📅 Auto-Programación Preventiva</h1>
+        <span class="subtitle">IA genera planes que el admin aprueba o rechaza</span>
+    </div>
+    <div class="topbar-actions">
+        <form method="POST" action="/automatizacion/generar-demo" style="display:inline;">
+            <button class="btn btn-outline" type="submit"
+                    onclick="return confirm('¿Crear equipos demo en todas las habitaciones?')">
+                🏗️ Generar Equipos Demo
+            </button>
+        </form>
+        <form method="POST" action="/automatizacion/generar" style="display:inline;">
+            <input type="hidden" name="semanas" value="4">
+            <button class="btn btn-primary">🤖 Generar Plan (4 semanas)</button>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📋</div>
+        <div class="label">Items Propuestos</div>
+        <div class="value">{{ total_propuestos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🚨</div>
+        <div class="label">Críticos</div>
+        <div class="value">{{ criticos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">💰</div>
+        <div class="label">Costo Estimado Total</div>
+        <div class="value">${{ "{:,.0f}".format(costo_total) }}</div>
+    </div>
+</section>
+
+<!-- Tabs vista plan -->
+<div style="display:flex; gap:8px; margin-bottom:12px;" data-aos="fade-up">
+    <button id="tabTabla" class="btn btn-primary" onclick="mostrarTab('tabla')">☰ Tabla</button>
+    <button id="tabCal" class="btn btn-outline" onclick="mostrarTab('calendario')">📅 Calendario</button>
+</div>
+
+<!-- Vista Calendario -->
+<div id="vistaCalendario" style="display:none;" data-aos="fade-up">
+    <div class="card">
+        <div class="card-body">
+            <div id="calendarioFC" style="min-height:500px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Plan Actual -->
+<div id="vistaTabla">
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">📋</span>
+        Plan Pendiente de Aprobación
+        <span class="badge badge-primary" style="margin-left:auto;">{{ total_propuestos }}</span>
+    </div>
+    <div class="card-body">
+        {% if plan %}
+        <form id="planForm">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" title="Seleccionar todos"></th>
+                            <th>Habitación</th>
+                            <th>Equipo</th>
+                            <th>Fecha Sugerida</th>
+                            <th>Prioridad</th>
+                            <th>Razón</th>
+                            <th>Costo Est.</th>
+                            <th>Técnico Rec.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in plan %}
+                        <tr>
+                            <td><input type="checkbox" name="plan_ids" value="{{ p[0] }}" class="plan-check"></td>
+                            <td><strong>#{{ p[1] }}</strong></td>
+                            <td>{{ p[2] }}</td>
+                            <td>{{ p[3] }}</td>
+                            <td>
+                                <span class="badge {% if p[4] == 'Crítica' %}badge-red{% elif p[4] == 'Alta' %}badge-amber{% elif p[4] == 'Media' %}priority-media{% else %}badge-green{% endif %}">
+                                    {{ p[4] }}
+                                </span>
+                            </td>
+                            <td class="text-sm">{{ p[5] }}</td>
+                            <td>{{ "$%.0f" | format(p[6]) if p[6] else '—' }}</td>
+                            <td>{{ p[7] or '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if session.get('rol') == 'admin' %}
+            <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+                <button type="button" onclick="submitPlan('aprobar')" class="btn btn-primary">✅ Aprobar Seleccionados</button>
+                <button type="button" onclick="submitPlan('rechazar')" class="btn btn-outline" style="color:var(--red); border-color:var(--red);">❌ Rechazar Seleccionados</button>
+            </div>
+            {% endif %}
+        </form>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📅</span>
+            <div class="empty-text">Sin planes pendientes. Haz clic en "Generar Plan" para que la IA proponga mantenimiento preventivo.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>{# /vistaTabla #}
+
+<!-- Historial -->
+{% if historial %}
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">📜</span>
+        Historial de Planes
+        <button id="btnAgrupar" class="btn btn-outline btn-sm" style="margin-left:auto;"
+                onclick="toggleAgrupacion()">📅 Ver por días</button>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table id="tablaHistorial">
+                <thead>
+                    <tr>
+                        <th>Habitación</th>
+                        <th>Equipo</th>
+                        <th>Fecha Sugerida</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Resuelto por</th>
+                        <th>Fecha</th>
+                        {% if session.get('rol') == 'admin' %}<th></th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody id="historialBody">
+                    {% for h in historial %}
+                    <tr data-fecha="{{ h[3] }}">
+                        <td>#{{ h[1] }}</td>
+                        <td>{{ h[2] }}</td>
+                        <td>{{ h[3] }}</td>
+                        <td>
+                            <span class="badge {% if h[4] == 'Crítica' %}badge-red{% elif h[4] == 'Alta' %}badge-amber{% else %}priority-media{% endif %}">
+                                {{ h[4] }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if h[5] == 'Aprobado' %}badge-green{% else %}badge-red{% endif %}">
+                                {{ h[5] }}
+                            </span>
+                        </td>
+                        <td>{{ h[6] or '—' }}</td>
+                        <td class="text-sm text-muted">{{ h[7].strftime('%Y-%m-%d') if h[7] else '—' }}</td>
+                        {% if session.get('rol') == 'admin' %}
+                        <td>
+                            <form method="POST" action="/automatizacion/eliminar-historial/{{ h[0] }}"
+                                  onsubmit="return confirm('¿Eliminar este registro del historial?')" style="display:inline;">
+                                <button class="btn btn-outline btn-sm" style="color:var(--red); border-color:var(--red);" title="Eliminar">🗑️</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Select all checkboxes
+    document.getElementById('selectAll')?.addEventListener('change', function() {
+        document.querySelectorAll('.plan-check').forEach(cb => cb.checked = this.checked);
+    });
+
+    function submitPlan(action) {
+        const checked = document.querySelectorAll('.plan-check:checked');
+        if (checked.length === 0) {
+            alert('Selecciona al menos un item del plan');
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/automatizacion/' + action;
+
+        checked.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'plan_ids';
+            input.value = cb.value;
+            form.appendChild(input);
+        });
+
+        if (action === 'rechazar') {
+            const motivo = prompt('Motivo del rechazo (opcional):') || '';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'motivo';
+            input.value = motivo;
+            form.appendChild(input);
+        }
+
+        // CSRF: form.submit() programático no dispara el listener global
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (csrfMeta) {
+            const csrfInp = document.createElement('input');
+            csrfInp.type = 'hidden';
+            csrfInp.name = 'csrf_token';
+            csrfInp.value = csrfMeta.getAttribute('content');
+            form.appendChild(csrfInp);
+        }
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // ── Agrupación por días ──────────────────────────────────
+    let modoAgrupado = false;
+    let filasPlanasBackup = null;
+
+    function toggleAgrupacion() {
+        const tbody = document.getElementById('historialBody');
+        const btn = document.getElementById('btnAgrupar');
+        if (!tbody) return;
+
+        if (!modoAgrupado) {
+            // Guardar filas planas
+            filasPlanasBackup = Array.from(tbody.querySelectorAll('tr'));
+
+            // Agrupar por fecha
+            const grupos = {};
+            filasPlanasBackup.forEach(tr => {
+                const fecha = tr.dataset.fecha || '—';
+                if (!grupos[fecha]) grupos[fecha] = [];
+                grupos[fecha].push(tr);
+            });
+
+            tbody.innerHTML = '';
+            const cols = document.querySelectorAll('#tablaHistorial thead th').length;
+
+            Object.keys(grupos).sort().forEach(fecha => {
+                const filas = grupos[fecha];
+                const count = filas.length;
+
+                // Cabecera de día colapsable
+                const header = document.createElement('tr');
+                header.className = 'day-header';
+                header.style.cssText = 'cursor:pointer; background:var(--bg-2, #f5f5f5);';
+                header.dataset.grupo = fecha;
+                header.dataset.collapsed = 'false';
+                header.innerHTML = `<td colspan="${cols}" style="padding:10px 14px; font-weight:600;">
+                    <span>📅 ${formatFecha(fecha)}</span>
+                    <span class="badge badge-primary" style="margin-left:8px;">${count} ${count === 1 ? 'item' : 'items'}</span>
+                    <span style="float:right;" class="arrow">▼</span>
+                </td>`;
+                header.addEventListener('click', () => colapsarDia(header, fecha));
+                tbody.appendChild(header);
+
+                // Filas del día
+                filas.forEach(tr => {
+                    tr.dataset.grupo = fecha;
+                    tbody.appendChild(tr);
+                });
+            });
+
+            btn.textContent = '☰ Ver todo';
+            modoAgrupado = true;
+        } else {
+            // Restaurar vista plana
+            tbody.innerHTML = '';
+            filasPlanasBackup.forEach(tr => {
+                delete tr.dataset.grupo;
+                tbody.appendChild(tr);
+            });
+            btn.textContent = '📅 Ver por días';
+            modoAgrupado = false;
+        }
+    }
+
+    function colapsarDia(headerTr, fecha) {
+        const tbody = document.getElementById('historialBody');
+        const collapsed = headerTr.dataset.collapsed === 'true';
+        const arrow = headerTr.querySelector('.arrow');
+
+        tbody.querySelectorAll(`tr[data-grupo="${fecha}"]:not(.day-header)`).forEach(tr => {
+            tr.style.display = collapsed ? '' : 'none';
+        });
+
+        headerTr.dataset.collapsed = collapsed ? 'false' : 'true';
+        if (arrow) arrow.textContent = collapsed ? '▼' : '▶';
+    }
+
+    function formatFecha(fechaStr) {
+        if (!fechaStr || fechaStr === '—') return 'Sin fecha';
+        const d = new Date(fechaStr + 'T00:00:00');
+        return d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // ── Calendario FullCalendar ──────────────────────────────
+    function mostrarTab(tab) {
+        const tabla = document.getElementById('vistaTabla');
+        const cal = document.getElementById('vistaCalendario');
+        const btnTabla = document.getElementById('tabTabla');
+        const btnCal = document.getElementById('tabCal');
+
+        if (tab === 'tabla') {
+            tabla.style.display = '';
+            cal.style.display = 'none';
+            btnTabla.className = 'btn btn-primary';
+            btnCal.className = 'btn btn-outline';
+        } else {
+            tabla.style.display = 'none';
+            cal.style.display = '';
+            btnTabla.className = 'btn btn-outline';
+            btnCal.className = 'btn btn-primary';
+            if (!window._calInit) initCalendario();
+        }
+    }
+
+    function initCalendario() {
+        window._calInit = true;
+        fetch('/automatizacion/eventos')
+            .then(r => r.json())
+            .then(eventos => {
+                const cal = new FullCalendar.Calendar(
+                    document.getElementById('calendarioFC'), {
+                    locale: 'es',
+                    initialView: 'dayGridMonth',
+                    events: eventos,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,listWeek'
+                    },
+                    eventClick: function(info) {
+                        const p = info.event.extendedProps;
+                        alert(
+                            info.event.title + '\n' +
+                            'Prioridad: ' + p.prioridad + '\n' +
+                            'Técnico: ' + p.tecnico + '\n' +
+                            'Costo estimado: $' + p.costo.toFixed(0)
+                        );
+                    }
+                });
+                cal.render();
+            })
+            .catch(() => {
+                document.getElementById('calendarioFC').innerHTML =
+                    '<p style="color:var(--red);padding:20px;">Error al cargar eventos del calendario.</p>';
+            });
+    }
+</script>
+{% endblock %}

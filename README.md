@@ -117,30 +117,84 @@ Las tablas se crean automáticamente al iniciar. La aplicación estará disponib
 
 ```
 hotel_mantenimiento/
-├── app.py                  # Entry point + Application Factory
-├── config.py               # Configuración (SECRET_KEY, DB, seguridad)
-├── extensions.py           # SocketIO, CSRF, Limiter
-├── docker-compose.yml      # Contenedor PostgreSQL
-├── requirements.txt        # Dependencias Python
-├── .env.example            # Plantilla de variables de entorno
 │
-├── ai/                     # Módulos de Inteligencia Artificial
-│   ├── predictor.py        # Predicción de fallas
-│   ├── cost_predictor.py   # Predicción de costos
-│   ├── detector.py         # Detección visual (YOLOv8)
-│   ├── scoring_engine.py   # Motor de puntuación
-│   ├── maintenance_scheduler.py
-│   └── technician_recommender.py
+├── 📄 app.py                   # Entry point + Application Factory
+├── 📄 config.py                # Configuración (SECRET_KEY, DB, seguridad)
+├── 📄 extensions.py            # SocketIO, CSRF, Limiter (extensiones Flask)
+├── 📄 docker-compose.yml       # Contenedor PostgreSQL
+├── 📄 requirements.txt         # Dependencias Python
+├── 📄 .env.example             # Plantilla de variables de entorno
 │
-├── database/               # Capa de datos
-│   ├── db.py               # Conexión PostgreSQL
-│   ├── init_schema.py      # Schema principal
-│   └── init_schema_ai*.py  # Schema módulos IA
+├── 📂 routes/                  # 🌐 Blueprints Flask (lógica de vistas)
+│   ├── auth.py                 # Login / Logout
+│   ├── dashboard.py            # Panel principal
+│   ├── habitaciones.py         # Gestión de habitaciones
+│   ├── mantenimiento.py        # Órdenes de mantenimiento ← flujo principal
+│   ├── inspecciones.py         # Inspecciones de calidad
+│   ├── limpieza.py             # Hoja de limpieza
+│   ├── equipos.py              # Activos y equipos
+│   ├── tecnicos.py             # Gestión de técnicos
+│   ├── costos.py               # Análisis de costos
+│   ├── analisis.py             # Dashboard analítico / KPIs
+│   ├── reportes.py             # Generación de reportes PDF/Excel
+│   ├── automatizacion.py       # Flujos automatizados
+│   ├── operaciones.py          # Vista operacional
+│   ├── predicciones.py         # AI: mantenimiento predictivo
+│   ├── vision.py               # AI: detección visual
+│   └── admin.py                # Administración de usuarios
 │
-├── routes/                 # Blueprints Flask (16 módulos)
-├── templates/              # Vistas HTML (Jinja2)
-├── static/                 # CSS, JS, imágenes
-└── utils/                  # Utilidades (email, etc.)
+├── 📂 templates/               # 🎨 Vistas HTML (Jinja2)
+│   └── *.html                  # 34 templates
+│
+├── 📂 static/                  # 📁 Archivos estáticos
+│   ├── css/                    # Estilos CSS
+│   └── uploads/                # Imágenes subidas (gitignored)
+│
+├── 📂 ai/                      # 🤖 Módulos de Inteligencia Artificial
+│   ├── predictor.py            # Predicción de fallas (ML)
+│   ├── cost_predictor.py       # Predicción de costos
+│   ├── detector.py             # Detección visual (YOLOv8)
+│   ├── scoring_engine.py       # Motor de puntuación
+│   ├── maintenance_scheduler.py# Planificador de mantenimiento
+│   ├── technician_recommender.py# Recomendación de técnicos
+│   ├── feature_utils.py        # Utilidades de features ML
+│   ├── services/               # Capa de servicio (bridge routes ↔ AI)
+│   │   ├── prediction_service.py
+│   │   ├── cost_service.py
+│   │   ├── cleaning_service.py
+│   │   ├── technician_service.py
+│   │   ├── vision_service.py
+│   │   ├── scheduler_service.py
+│   │   └── operations_service.py
+│   └── models/                 # Modelos entrenados .pkl (gitignored)
+│
+├── 📂 database/                # 🗄️ Capa de datos
+│   ├── db.py                   # Conexión PostgreSQL
+│   └── schemas/                # Scripts de creación de tablas
+│       ├── init_schema.py      # Schema principal
+│       ├── init_schema_v2.py   # Schema v2 (equipos, historial)
+│       ├── init_schema_ai.py   # Schema módulos IA v1
+│       ├── init_schema_ai_v2.py# Schema módulos IA v2
+│       └── migrate_data.py     # Migración de datos
+│
+├── 📂 scripts/                 # ⚙️ Scripts de administración (no son parte del servidor)
+│   ├── train_model.py          # Entrenar modelos ML (ejecutar una sola vez)
+│   └── dataset_generator.py   # Generar datos sintéticos de prueba
+│
+├── 📂 utils/                   # 🔧 Utilidades compartidas
+│   └── email_sender.py         # Envío de emails
+│
+├── 📂 tests/                   # 🧪 Suite de pruebas
+│   ├── conftest.py             # Fixtures pytest
+│   ├── test_auth.py
+│   ├── test_habitaciones.py
+│   ├── test_mantenimiento.py
+│   ├── test_admin.py
+│   └── test_limpieza_ia.py
+│
+└── 📂 docs/                    # 📚 Documentación
+    ├── GUIA_PRESENTACION_CEO.md# Guía de presentación para directivos
+    └── diagrama_sistema.md     # Diagrama completo del sistema
 ```
 
 ---

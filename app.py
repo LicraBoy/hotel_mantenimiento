@@ -32,14 +32,14 @@ def crear_app(config_class=None):
 
         # Crear tablas de IA si no existen estas
         try:
-            from database.init_schema_ai import crear_tablas_ai
+            from database.schemas.init_schema_ai import crear_tablas_ai
             crear_tablas_ai()
         except Exception as e:
             print(f"⚠️ Tablas AI: {e}")
 
         # Crear tablas de IA v2 (costos, planes, alertas, columnas nuevas)
         try:
-            from database.init_schema_ai_v2 import crear_tablas_ai_v2
+            from database.schemas.init_schema_ai_v2 import crear_tablas_ai_v2
             crear_tablas_ai_v2()
         except Exception as e:
             print(f"⚠️ Tablas AI v2: {e}")

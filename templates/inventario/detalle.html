@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% set active_page = 'inventario' %}
+{% block title %}{{ a[2] }} — Inventario{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>{{ a[2] }}</h1>
+        <span class="subtitle">{{ a[1] or 'Sin código' }} · {{ a[23] or 'Sin categoría' }}</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/inventario/activo/{{ a[0] }}/qr" class="btn btn-outline btn-sm">📱 Descargar QR</a>
+        <a href="/inventario/activo/{{ a[0] }}/editar" class="btn btn-outline btn-sm">✏️ Editar</a>
+        <a href="/mantenimiento/nuevo/{{ a[15] or 0 }}?activo_id={{ a[0] }}&elemento={{ a[2] }}"
+           class="btn btn-primary btn-sm">🔧 Crear OT</a>
+    </div>
+</div>
+
+<!-- Estado y Garantía -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap" style="background:{{ a[25] or '#6366F1' }}15; color:{{ a[25] or '#6366F1' }};">
+            <i class="{{ a[24] or 'fas fa-box' }}"></i>
+        </div>
+        <div class="label">Categoría</div>
+        <div class="value" style="font-size:1.1rem;">{{ a[23] or '—' }}</div>
+        {% if a[4] %}<div class="sub">{{ a[4] }}</div>{% endif %}
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap {% if a[16] == 'operativo' %}icon-green{% elif a[16] == 'en_mantenimiento' %}icon-amber{% else %}icon-red{% endif %}">
+            {% if a[16] == 'operativo' %}✅{% elif a[16] == 'en_mantenimiento' %}🔧{% else %}⛔{% endif %}
+        </div>
+        <div class="label">Estado</div>
+        <div class="value" style="font-size:1.1rem;">{{ a[16] | replace('_', ' ') | capitalize }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap {% if estado_gar == 'vigente' %}icon-green{% elif estado_gar == 'por_vencer' %}icon-amber{% elif estado_gar == 'vencida' %}icon-red{% else %}icon-primary{% endif %}">
+            🛡️
+        </div>
+        <div class="label">Garantía</div>
+        {% if estado_gar == 'vigente' %}
+        <div class="value" style="font-size:1.1rem; color:var(--green);">Vigente</div>
+        <div class="sub">{{ dias_gar }} días restantes</div>
+        {% elif estado_gar == 'por_vencer' %}
+        <div class="value" style="font-size:1.1rem; color:var(--amber);">Por vencer</div>
+        <div class="sub">{{ dias_gar }} días</div>
+        {% elif estado_gar == 'vencida' %}
+        <div class="value" style="font-size:1.1rem; color:var(--red);">Vencida</div>
+        {% else %}
+        <div class="value" style="font-size:1.1rem;">—</div>
+        {% endif %}
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-teal">💰</div>
+        <div class="label">Costo Adquisición</div>
+        <div class="value" style="font-size:1.1rem;">${{ "%.2f"|format(a[12]|float) if a[12] else '—' }}</div>
+    </div>
+</section>
+
+<!-- Ficha técnica + Foto -->
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="100">
+    <!-- Datos técnicos -->
+    <div class="card">
+        <div class="card-header"><span class="h-icon">📋</span> Datos Técnicos</div>
+        <div class="card-body">
+            <table style="width:100%;">
+                <tr><td class="text-muted text-sm" style="width:40%; padding:8px 0;">Marca</td><td style="padding:8px 0; font-weight:500;">{{ a[5] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Modelo</td><td style="padding:8px 0; font-weight:500;">{{ a[6] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">N° Serie</td><td style="padding:8px 0; font-weight:500;">{{ a[7] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Vida Útil</td><td style="padding:8px 0; font-weight:500;">{{ a[13] or '—' }} años</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Proveedor</td><td style="padding:8px 0; font-weight:500;">{{ a[11] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Fecha Compra</td><td style="padding:8px 0; font-weight:500;">{{ a[8] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Instalación</td><td style="padding:8px 0; font-weight:500;">{{ a[9] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Garantía Hasta</td><td style="padding:8px 0; font-weight:500;">{{ a[10] or '—' }}</td></tr>
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Ubicación</td><td style="padding:8px 0; font-weight:500;">{{ a[14] or '—' }}</td></tr>
+                {% if a[26] %}
+                <tr><td class="text-muted text-sm" style="padding:8px 0;">Habitación</td><td style="padding:8px 0; font-weight:500;">#{{ a[26] }}</td></tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Foto + QR -->
+    <div>
+        {% if a[17] %}
+        <div class="card mb-2">
+            <div class="card-header"><span class="h-icon">📷</span> Foto</div>
+            <div class="card-body text-center">
+                <img src="{{ a[17] }}" alt="Foto activo" style="max-width:100%; max-height:300px; border-radius:var(--radius-sm);">
+            </div>
+        </div>
+        {% endif %}
+        {% if a[18] %}
+        <div class="card">
+            <div class="card-header"><span class="h-icon">📱</span> Código QR</div>
+            <div class="card-body text-center">
+                <img src="{{ a[18] }}" alt="QR" style="max-width:180px;">
+                <div class="mt-1">
+                    <a href="/inventario/activo/{{ a[0] }}/qr" class="btn btn-outline btn-sm">⬇️ Descargar</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Notas -->
+{% if a[19] %}
+<div class="card mb-3 mt-2" data-aos="fade-up">
+    <div class="card-header"><span class="h-icon">📝</span> Notas</div>
+    <div class="card-body"><p style="white-space:pre-wrap;">{{ a[19] }}</p></div>
+</div>
+{% endif %}
+
+<!-- Documentos -->
+<div class="card mb-3 mt-2" data-aos="fade-up">
+    <div class="card-header" style="justify-content:space-between;">
+        <div><span class="h-icon">📎</span> Documentos Adjuntos</div>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('modalDoc').style.display='flex'">+ Subir</button>
+    </div>
+    <div class="card-body">
+        {% if documentos %}
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Tipo</th><th>Archivo</th><th>Fecha</th><th></th></tr></thead>
+                <tbody>
+                    {% for d in documentos %}
+                    <tr>
+                        <td><span class="badge badge-primary">{{ d[1] }}</span></td>
+                        <td>{{ d[2] }}</td>
+                        <td class="text-sm text-muted">{{ d[4] }}</td>
+                        <td><a href="{{ d[3] }}" target="_blank" class="btn btn-outline btn-sm">📥</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:20px;">
+            <div class="empty-text">Sin documentos adjuntos</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Historial de Mantenimientos -->
+<div class="card mt-2" data-aos="fade-up">
+    <div class="card-header"><span class="h-icon">🛠️</span> Historial de Mantenimientos</div>
+    <div class="card-body">
+        {% if mantenimientos %}
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Elemento</th><th>Técnico</th><th>Estado</th><th>Costo</th></tr></thead>
+                <tbody>
+                    {% for m in mantenimientos %}
+                    <tr>
+                        <td class="text-sm">{{ m[1] }}</td>
+                        <td><span class="badge badge-primary">{{ m[2] }}</span></td>
+                        <td>{{ m[3] or '—' }}</td>
+                        <td class="text-sm">{{ m[5] or '—' }}</td>
+                        <td>
+                            {% if m[6] == 'Completado' %}<span class="badge badge-green">{{ m[6] }}</span>
+                            {% elif m[6] == 'En proceso' %}<span class="badge badge-amber">{{ m[6] }}</span>
+                            {% else %}<span class="badge badge-red">{{ m[6] }}</span>{% endif %}
+                        </td>
+                        <td>${{ m[7] or 0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:20px;">
+            <div class="empty-text">Sin mantenimientos registrados para este activo</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="actions mt-2">
+    <a href="/inventario" class="btn btn-secondary">← Volver al Inventario</a>
+</div>
+
+<!-- Modal: Subir Documento -->
+<div id="modalDoc" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+     z-index:1000; align-items:center; justify-content:center;">
+    <div class="card" style="width:440px; max-width:95vw;">
+        <div class="card-header">
+            <span class="h-icon">📎</span> Subir Documento
+            <button onclick="document.getElementById('modalDoc').style.display='none'"
+                    style="margin-left:auto; background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/inventario/activo/{{ a[0] }}/documento" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Tipo de Documento</label>
+                    <select name="tipo_documento">
+                        <option value="manual">Manual</option>
+                        <option value="garantia">Garantía</option>
+                        <option value="factura">Factura</option>
+                        <option value="contrato">Contrato</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Archivo</label>
+                    <input type="file" name="documento" required
+                           style="padding:10px; border:2px dashed var(--border); border-radius:var(--radius-sm); width:100%; box-sizing:border-box;">
+                </div>
+                <div style="display:flex; gap:8px; justify-content:flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('modalDoc').style.display='none'">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">📤 Subir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Info -->
+<div class="text-muted text-sm mt-2" style="text-align:right;">
+    Creado por {{ a[27] or '—' }} · {{ a[21] }}
+</div>
+{% endblock %}

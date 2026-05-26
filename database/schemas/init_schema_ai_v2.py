@@ -96,7 +96,7 @@ def crear_tablas_ai_v2():
     conn.commit()
     cursor.close()
     conn.close()
-    print("✅ Tablas de IA v2 creadas correctamente")
+    print("[OK] Tablas V2 creadas correctamente (4 nuevas + columnas expandidas)")
 
 
 if __name__ == "__main__":

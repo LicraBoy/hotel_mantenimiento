@@ -35,14 +35,21 @@ def crear_app(config_class=None):
             from database.schemas.init_schema_ai import crear_tablas_ai
             crear_tablas_ai()
         except Exception as e:
-            print(f"⚠️ Tablas AI: {e}")
+            print(f"[WARN] Tablas AI: {e}")
 
         # Crear tablas de IA v2 (costos, planes, alertas, columnas nuevas)
         try:
             from database.schemas.init_schema_ai_v2 import crear_tablas_ai_v2
             crear_tablas_ai_v2()
         except Exception as e:
-            print(f"⚠️ Tablas AI v2: {e}")
+            print(f"[WARN] Tablas AI v2: {e}")
+
+        # Crear tablas de Inventario de Activos
+        try:
+            from database.schemas.init_schema_inventario import crear_tablas_inventario
+            crear_tablas_inventario()
+        except Exception as e:
+            print(f"[WARN] Tablas Inventario: {e}")
 
     # Inicializar SocketIO
     socketio.init_app(app)

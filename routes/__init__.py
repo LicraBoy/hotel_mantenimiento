@@ -13,7 +13,7 @@ from routes.costos import costos_bp
 from routes.tecnicos import tecnicos_bp
 from routes.automatizacion import automatizacion_bp
 from routes.operaciones import operaciones_bp
-from routes.equipos import equipos_bp
+from routes.inventario import inventario_bp
 
 
 def registrar_blueprints(app):
@@ -35,4 +35,4 @@ def registrar_blueprints(app):
     app.register_blueprint(tecnicos_bp)
     app.register_blueprint(automatizacion_bp)
     app.register_blueprint(operaciones_bp)
-    app.register_blueprint(equipos_bp)
+    app.register_blueprint(inventario_bp)

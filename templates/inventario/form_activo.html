@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% set active_page = 'inventario' %}
+{% block title %}{% if modo == 'editar' %}Editar{% else %}Nuevo{% endif %} Activo — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>{% if modo == 'editar' %}✏️ Editar Activo{% else %}📦 Nuevo Activo{% endif %}</h1>
+        <span class="subtitle">{% if modo == 'editar' %}{{ activo[2] }} ({{ activo[1] }}){% else %}Registrar un nuevo activo en el inventario{% endif %}</span>
+    </div>
+</div>
+
+<div class="card" data-aos="fade-up" style="max-width:780px;">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Sección: Identificación -->
+            <div class="accordion-header" onclick="toggle('secId')">
+                📋 Identificación
+            </div>
+            <div id="secId" style="margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Código <span class="text-muted">(auto si vacío)</span></label>
+                        <input type="text" name="codigo" value="{{ activo[1] if modo == 'editar' else '' }}"
+                               placeholder="Ej: LB-2025-001" {% if modo == 'editar' %}readonly style="background:var(--bg);"{% endif %}>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría *</label>
+                        <select name="categoria_id" required>
+                            <option value="">— Seleccionar —</option>
+                            {% for c in categorias %}
+                            <option value="{{ c[0] }}" {% if modo == 'editar' and activo[3] == c[0] %}selected{% endif %}>{{ c[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Activo *</label>
+                    <input type="text" name="nombre" required maxlength="150"
+                           value="{{ activo[2] if modo == 'editar' else '' }}"
+                           placeholder="Ej: Aire acondicionado split 12000 BTU">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Subcategoría</label>
+                        <input type="text" name="subcategoria"
+                               value="{{ activo[4] if modo == 'editar' and activo[4] else '' }}"
+                               placeholder="Ej: Minisplit, Lavadora industrial">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select name="estado">
+                            {% for e in estados %}
+                            <option value="{{ e }}" {% if modo == 'editar' and activo[16] == e %}selected{% endif %}>
+                                {{ e | replace('_', ' ') | capitalize }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Datos Técnicos -->
+            <div class="accordion-header" onclick="toggle('secTec')">
+                🔧 Datos Técnicos
+            </div>
+            <div id="secTec" style="margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Marca</label>
+                        <input type="text" name="marca" value="{{ activo[5] if modo == 'editar' and activo[5] else '' }}"
+                               placeholder="Ej: Samsung, LG, Carrier">
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <input type="text" name="modelo" value="{{ activo[6] if modo == 'editar' and activo[6] else '' }}"
+                               placeholder="Ej: AR12BVHQAWKNAP">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Número de Serie</label>
+                        <input type="text" name="numero_serie"
+                               value="{{ activo[7] if modo == 'editar' and activo[7] else '' }}"
+                               placeholder="Ej: SN-20250101-ABCD">
+                    </div>
+                    <div class="form-group">
+                        <label>Vida Útil (años)</label>
+                        <input type="number" name="vida_util_anos" min="1" max="50"
+                               value="{{ activo[13] if modo == 'editar' and activo[13] else '' }}"
+                               placeholder="Ej: 10">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Ubicación -->
+            <div class="accordion-header" onclick="toggle('secUbi')">
+                📍 Ubicación
+            </div>
+            <div id="secUbi" style="margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Habitación <span class="text-muted">(opcional)</span></label>
+                        <select name="habitacion_id">
+                            <option value="">— Sin asignar —</option>
+                            {% for h in habitaciones %}
+                            <option value="{{ h[0] }}" {% if modo == 'editar' and activo[15] == h[0] %}selected{% endif %}>
+                                Habitación #{{ h[1] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación (texto libre)</label>
+                        <input type="text" name="ubicacion"
+                               value="{{ activo[14] if modo == 'editar' and activo[14] else '' }}"
+                               placeholder="Ej: Piso 3, Área de lavandería">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Información Comercial -->
+            <div class="accordion-header" onclick="toggle('secCom')">
+                💰 Información Comercial
+            </div>
+            <div id="secCom" style="margin-bottom:20px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Proveedor</label>
+                        <input type="text" name="proveedor"
+                               value="{{ activo[11] if modo == 'editar' and activo[11] else '' }}"
+                               placeholder="Nombre del proveedor">
+                    </div>
+                    <div class="form-group">
+                        <label>Costo de Adquisición ($)</label>
+                        <input type="number" name="costo_adquisicion" step="0.01" min="0"
+                               value="{{ activo[12] if modo == 'editar' and activo[12] else '' }}"
+                               placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha de Compra</label>
+                        <input type="date" name="fecha_compra"
+                               value="{{ activo[8] if modo == 'editar' and activo[8] else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Instalación</label>
+                        <input type="date" name="fecha_instalacion"
+                               value="{{ activo[9] if modo == 'editar' and activo[9] else '' }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Garantía Hasta</label>
+                    <input type="date" name="garantia_hasta"
+                           value="{{ activo[10] if modo == 'editar' and activo[10] else '' }}">
+                </div>
+            </div>
+
+            <!-- Sección: Notas y Foto -->
+            <div class="accordion-header" onclick="toggle('secNot')">
+                📝 Notas y Foto
+            </div>
+            <div id="secNot" style="margin-bottom:20px;">
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea name="notas" placeholder="Observaciones adicionales sobre el activo…">{{ activo[19] if modo == 'editar' and activo[19] else '' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Foto del Activo <span class="text-muted">(opcional, máx 5MB)</span></label>
+                    {% if modo == 'editar' and activo[17] %}
+                    <div style="margin-bottom:8px;">
+                        <img src="{{ activo[17] }}" alt="Foto actual" style="max-height:120px; border-radius:var(--radius-sm);">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="foto" accept="image/*"
+                           style="padding:10px; border:2px dashed var(--border); border-radius:var(--radius-sm); width:100%; box-sizing:border-box;">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">
+                    💾 {% if modo == 'editar' %}Guardar Cambios{% else %}Registrar Activo{% endif %}
+                </button>
+                <a href="/inventario" class="btn btn-secondary">← Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggle(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : (el.style.display === 'block' ? 'none' : 'block');
+}
+</script>
+{% endblock %}

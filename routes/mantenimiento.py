@@ -199,7 +199,7 @@ def nuevo(habitacion_id):
     deteccion_id = request.args.get("deteccion_id", "")
     conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, nombre, especialidad FROM tecnicos ORDER BY nombre")
+    cursor.execute("SELECT id, username as nombre, especialidad FROM usuarios ORDER BY username")
     tecnicos = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -279,7 +279,7 @@ def editar(id):
     cursor.execute("SELECT id, tipo, elemento, descripcion, tecnico, fecha, estado, costo, prioridad FROM mantenimiento WHERE id=%s", (id,))
     mantenimiento = cursor.fetchone()
 
-    cursor.execute("SELECT id, nombre, especialidad FROM tecnicos ORDER BY nombre")
+    cursor.execute("SELECT id, username as nombre, especialidad FROM usuarios ORDER BY username")
     tecnicos = cursor.fetchall()
     cursor.close()
     conn.close()

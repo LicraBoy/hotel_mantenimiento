@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% set active_page = 'inventario' %}
+{% block title %}Lista de Activos — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>📋 Lista de Activos</h1>
+        <span class="subtitle">{{ total }} activo{{ 's' if total != 1 }} registrado{{ 's' if total != 1 }}</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/inventario/exportar" class="btn btn-outline btn-sm">📥 Excel</a>
+        <a href="/inventario/activo/nuevo" class="btn btn-primary btn-sm">+ Nuevo</a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-3" data-aos="fade-up">
+    <div class="card-body" style="padding:14px 20px;">
+        <form method="GET" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+            <div class="form-group" style="margin:0; flex:1; min-width:160px;">
+                <label>Categoría</label>
+                <select name="categoria">
+                    <option value="">Todas</option>
+                    {% for c in categorias %}
+                    <option value="{{ c[0] }}" {% if filtro_cat|string == c[0]|string %}selected{% endif %}>{{ c[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin:0; flex:1; min-width:140px;">
+                <label>Estado</label>
+                <select name="estado">
+                    <option value="">Todos</option>
+                    {% for e in estados %}
+                    <option value="{{ e }}" {% if filtro_estado == e %}selected{% endif %}>{{ e | replace('_', ' ') | capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin:0; flex:2; min-width:200px;">
+                <label>Buscar</label>
+                <input type="text" name="q" value="{{ filtro_busq }}" placeholder="Nombre, código, marca, serie…">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="height:40px;">🔍 Filtrar</button>
+            {% if filtro_cat or filtro_estado or filtro_busq %}
+            <a href="/inventario/lista" class="btn btn-outline btn-sm" style="height:40px;">✕ Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-body">
+        {% if activos %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Marca / Modelo</th>
+                        <th>Ubicación</th>
+                        <th>Estado</th>
+                        <th>Garantía</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in activos %}
+                    <tr>
+                        <td><strong>{{ a[1] or '—' }}</strong></td>
+                        <td>
+                            <a href="/inventario/activo/{{ a[0] }}" style="font-weight:600;">{{ a[2] }}</a>
+                        </td>
+                        <td>
+                            {% if a[3] %}
+                            <span class="badge" style="background:{{ a[4] }}15; color:{{ a[4] }};">{{ a[3] }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-sm">{{ a[5] or '' }} {% if a[6] %}· {{ a[6] }}{% endif %}</td>
+                        <td class="text-sm text-muted">{{ a[7] or '—' }}</td>
+                        <td>
+                            {% if a[8] == 'operativo' %}
+                            <span class="badge badge-green">Operativo</span>
+                            {% elif a[8] == 'en_mantenimiento' %}
+                            <span class="badge badge-amber">En Mantto.</span>
+                            {% elif a[8] == 'fuera_servicio' %}
+                            <span class="badge badge-red">Fuera de Servicio</span>
+                            {% else %}
+                            <span class="badge" style="background:#f1f5f9; color:#64748b;">Dado de Baja</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a[12] == 'vigente' %}
+                            <span class="badge badge-green">Vigente</span>
+                            {% elif a[12] == 'por_vencer' %}
+                            <span class="badge badge-amber">{{ a[13] }}d</span>
+                            {% elif a[12] == 'vencida' %}
+                            <span class="badge badge-red">Vencida</span>
+                            {% else %}
+                            <span class="text-muted text-sm">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/inventario/activo/{{ a[0] }}" class="btn btn-outline btn-sm">Ver</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if total_pags > 1 %}
+        <div style="display:flex; justify-content:center; gap:6px; margin-top:16px;">
+            {% if pagina > 1 %}
+            <a href="?pagina={{ pagina-1 }}&categoria={{ filtro_cat }}&estado={{ filtro_estado }}&q={{ filtro_busq }}"
+               class="btn btn-outline btn-sm">← Anterior</a>
+            {% endif %}
+            <span class="text-muted text-sm" style="padding:8px 12px;">
+                Página {{ pagina }} de {{ total_pags }}
+            </span>
+            {% if pagina < total_pags %}
+            <a href="?pagina={{ pagina+1 }}&categoria={{ filtro_cat }}&estado={{ filtro_estado }}&q={{ filtro_busq }}"
+               class="btn btn-outline btn-sm">Siguiente →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📦</span>
+            <div class="empty-text">No se encontraron activos. <a href="/inventario/activo/nuevo">Registrar el primero →</a></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="actions mt-2">
+    <a href="/inventario" class="btn btn-secondary">← Volver al Inventario</a>
+</div>
+{% endblock %}

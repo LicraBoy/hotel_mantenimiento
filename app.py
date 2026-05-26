@@ -4,23 +4,52 @@ from routes import registrar_blueprints
 from database.db import conectar
 from extensions import socketio
 
-def crear_app():
+def crear_app(config_class=None):
     """Crea y configura la aplicación Flask."""
     app = Flask(__name__)
-    app.secret_key = Config.SECRET_KEY
+    app.config.from_object(config_class if config_class else Config)
+
+    # CSRF Protection + Rate Limiter
+    from extensions import csrf, limiter
+    csrf.init_app(app)
+    limiter.init_app(app)
+
+    # Headers de seguridad en todas las respuestas
+    @app.after_request
+    def agregar_headers_seguridad(response):
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
 
     # Registrar todos los blueprints
     registrar_blueprints(app)
 
-    # Ejecutar migración automática de BD
-    migrar_bd()
+    if not app.config.get("TESTING"):
+        # Ejecutar migración automática de BD
+        migrar_bd()
 
-    # Crear tablas de IA si no existen
-    try:
-        from database.init_schema_ai import crear_tablas_ai
-        crear_tablas_ai()
-    except Exception as e:
-        print(f"⚠️ Tablas AI: {e}")
+        # Crear tablas de IA si no existen estas
+        try:
+            from database.schemas.init_schema_ai import crear_tablas_ai
+            crear_tablas_ai()
+        except Exception as e:
+            print(f"[WARN] Tablas AI: {e}")
+
+        # Crear tablas de IA v2 (costos, planes, alertas, columnas nuevas)
+        try:
+            from database.schemas.init_schema_ai_v2 import crear_tablas_ai_v2
+            crear_tablas_ai_v2()
+        except Exception as e:
+            print(f"[WARN] Tablas AI v2: {e}")
+
+        # Crear tablas de Inventario de Activos
+        try:
+            from database.schemas.init_schema_inventario import crear_tablas_inventario
+            crear_tablas_inventario()
+        except Exception as e:
+            print(f"[WARN] Tablas Inventario: {e}")
 
     # Inicializar SocketIO
     socketio.init_app(app)
@@ -68,14 +97,15 @@ def migrar_bd():
         cursor.execute("ALTER TABLE mantenimiento ADD COLUMN prioridad TEXT DEFAULT 'Media'")
         conn.commit()
 
-    # Crear usuario de prueba si no existe
-    cursor.execute("SELECT id FROM usuarios WHERE username='empleado1'")
-    if not cursor.fetchone():
-        cursor.execute("""
-            INSERT INTO usuarios (username, password, rol)
-            VALUES ('empleado1', 'empleado1', 'empleado')
-        """)
+    if 'foto_url' not in columnas_mant:
+        cursor.execute("ALTER TABLE mantenimiento ADD COLUMN foto_url TEXT")
         conn.commit()
+
+    if 'deteccion_id' not in columnas_mant:
+        cursor.execute("ALTER TABLE mantenimiento ADD COLUMN deteccion_id INTEGER")
+        conn.commit()
+
+    # Usuario de prueba eliminado (contraseña débil)
 
     # ===============================
     # Encriptar passwords en texto plano
@@ -101,4 +131,4 @@ def migrar_bd():
 app = crear_app()
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=False)

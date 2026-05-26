@@ -19,6 +19,7 @@
         <div class="error-msg">🚫 {{ error }}</div>
         {% endif %}
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Usuario</label>
                 <input type="text" name="username" placeholder="Ingresa tu usuario" required>

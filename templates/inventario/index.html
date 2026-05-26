@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% set active_page = 'inventario' %}
+{% block title %}Inventario de Activos — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>📦 Inventario de Activos</h1>
+        <span class="subtitle">Catálogo maestro de todos los activos del hotel</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/inventario/exportar" class="btn btn-outline btn-sm">📥 Exportar Excel</a>
+        {% if session.get('rol') == 'admin' %}
+        <a href="/inventario/categorias" class="btn btn-outline btn-sm">🏷️ Categorías</a>
+        {% endif %}
+        <a href="/inventario/activo/nuevo" class="btn btn-primary">+ Nuevo Activo</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">📦</div>
+        <div class="label">Total Activos</div>
+        <div class="value">{{ total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">✅</div>
+        <div class="label">Operativos</div>
+        <div class="value">{{ operativos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">🔧</div>
+        <div class="label">En Mantenimiento</div>
+        <div class="value">{{ en_mant }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">⛔</div>
+        <div class="label">Fuera de Servicio</div>
+        <div class="value">{{ fuera }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-teal">💰</div>
+        <div class="label">Valor del Inventario</div>
+        <div class="value">${{ "%.2f"|format(valor_total|float) }}</div>
+    </div>
+</section>
+
+{% if garantias_vencidas > 0 %}
+<div class="alert alert-danger" data-aos="fade-up">
+    <span class="alert-icon">⚠️</span>
+    <span><strong>{{ garantias_vencidas }}</strong> activo(s) con garantía vencida. <a href="/inventario/lista?estado=">Revisar →</a></span>
+</div>
+{% endif %}
+
+<!-- Categorías Grid -->
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">🏷️</span>
+        Categorías de Activos
+    </div>
+    <div class="card-body">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px;">
+            {% for cat in categorias %}
+            <a href="/inventario/lista?categoria={{ cat[0] }}" class="cat-card"
+               style="display:flex; align-items:center; gap:14px; padding:16px; border-radius:var(--radius-sm);
+                      border:1px solid var(--border); background:var(--surface); text-decoration:none;
+                      transition:all var(--transition); cursor:pointer;">
+                <div style="width:44px; height:44px; border-radius:10px; display:grid; place-items:center;
+                            background:{{ cat[3] }}15; color:{{ cat[3] }}; font-size:1.2rem; flex-shrink:0;">
+                    <i class="{{ cat[2] }}"></i>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-weight:600; font-size:.88rem; color:var(--text);">{{ cat[1] }}</div>
+                    <div style="font-size:.75rem; color:var(--text-muted);">{{ cat[5] }} activo{{ 's' if cat[5] != 1 }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Acciones -->
+<div class="actions actions-center mt-3" data-aos="fade-up">
+    <a href="/inventario/lista" class="btn btn-primary">📋 Ver Todos los Activos</a>
+    <a href="/dashboard" class="btn btn-secondary">← Dashboard</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.cat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary-light) !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,20 @@
+{
+  "r2": 0.9978,
+  "mae": 2.53,
+  "rmse": 5.0,
+  "feature_importance": {
+    "costo": 0.9710351693593984,
+    "severidad_enc": 0.025332735964439683,
+    "tiempo_reparacion_horas": 0.0027024718138247555,
+    "dias_desde_anterior": 0.0003682367876473126,
+    "costo_promedio": 0.00019492079472597728,
+    "mes": 0.00017203917707207426,
+    "vida_util_restante_pct": 8.268538299721884e-05,
+    "edad_equipo_dias": 6.996609973446697e-05,
+    "dia_semana": 2.1188217338394746e-05,
+    "tipo_equipo_enc": 1.1745337143782303e-05,
+    "fallas_previas": 8.841065677887991e-06,
+    "fallas_recientes_90d": 0.0
+  },
+  "samples": 121
+}

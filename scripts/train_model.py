@@ -1,6 +1,6 @@
 """
 Entrenamiento de Modelos ML — Decision Tree + Random Forest
-Ejecutar: python ai/train_model.py
+Ejecutar desde la raíz del proyecto: python scripts/train_model.py
 """
 import os, sys, json, warnings
 warnings.filterwarnings("ignore")

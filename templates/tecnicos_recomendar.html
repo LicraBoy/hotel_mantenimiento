@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% set active_page = 'tecnicos' %}
+{% block title %}Recomendar Técnico — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>🤖 Recomendación de Técnico</h1>
+        <span class="subtitle">Orden #{{ orden[0] }} — Hab. #{{ orden[1] }} — {{ orden[3] or orden[2] }}</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/mantenimientos" class="btn btn-outline btn-sm">← Volver</a>
+    </div>
+</div>
+
+<!-- Info de la orden -->
+<div class="card" data-aos="fade-up">
+    <div class="card-header">
+        <span class="h-icon">🔧</span>
+        Detalles de la Orden
+    </div>
+    <div class="card-body">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div><strong>Habitación:</strong> #{{ orden[1] }}</div>
+            <div><strong>Tipo:</strong> {{ orden[2] }}</div>
+            <div><strong>Elemento:</strong> {{ orden[3] or '—' }}</div>
+            <div><strong>Prioridad:</strong>
+                <span class="badge {% if orden[4] == 'Crítica' %}badge-red{% elif orden[4] == 'Alta' %}badge-amber{% else %}badge-primary{% endif %}">
+                    {{ orden[4] or 'Media' }}
+                </span>
+            </div>
+        </div>
+        {% if orden[5] %}
+        <p style="margin-top:8px;" class="text-muted">{{ orden[5] }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recomendaciones -->
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">🏆</span>
+        Técnicos Recomendados
+        <span class="badge badge-primary" style="margin-left:auto;">{{ recomendaciones | length }}</span>
+    </div>
+    <div class="card-body">
+        {% if recomendaciones %}
+        {% for rec in recomendaciones %}
+        <div style="border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px;
+                    {% if loop.first %}border-color: var(--green); background: rgba(16,185,129,0.04);{% endif %}">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <strong style="font-size:1.1rem;">
+                        {% if loop.first %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+                        {{ rec.nombre }}
+                    </strong>
+                    <div class="text-sm text-muted" style="margin-top:4px;">
+                        {{ rec.total_trabajos }} trabajos previos | Carga: {{ rec.carga_actual }} tareas
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="text-align:center;">
+                        <div class="text-sm text-muted">Score</div>
+                        <strong style="font-size:1.3rem; color:{% if rec.score >= 0.7 %}var(--green){% elif rec.score >= 0.4 %}var(--amber){% else %}var(--red){% endif %};">
+                            {{ (rec.score * 100) | round(0) }}%
+                        </strong>
+                    </div>
+                    <form method="POST" action="/tecnicos/asignar">
+                        <input type="hidden" name="mantenimiento_id" value="{{ orden[0] }}">
+                        <input type="hidden" name="tecnico_id" value="{{ rec.tecnico_id }}">
+                        <input type="hidden" name="tecnico_nombre" value="{{ rec.nombre }}">
+                        <button type="submit" class="btn {% if loop.first %}btn-primary{% else %}btn-outline{% endif %} btn-sm">
+                            {% if loop.first %}✅ Asignar{% else %}Asignar{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Desglose de score -->
+            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-top:12px;">
+                {% for factor, valor in rec.desglose.items() %}
+                <div style="text-align:center;">
+                    <div class="text-sm text-muted" style="text-transform:capitalize;">{{ factor }}</div>
+                    <div style="background:#e2e8f0; border-radius:4px; height:6px; margin-top:4px;">
+                        <div style="width:{{ (valor * 100) | round(0) }}%; background:var(--primary); height:100%; border-radius:4px;"></div>
+                    </div>
+                    <div class="text-sm"><strong>{{ (valor * 100) | round(0) }}%</strong></div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Razones -->
+            {% if rec.razones %}
+            <div style="margin-top:8px;">
+                {% for razon in rec.razones %}
+                <span class="badge badge-green" style="margin-right:4px; margin-bottom:4px;">{{ razon }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">👷</span>
+            <div class="empty-text">No hay técnicos disponibles para recomendar.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

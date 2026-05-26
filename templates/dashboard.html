@@ -84,6 +84,28 @@
     </div>
 </div>
 
+<!-- Charts: Costos por mes + Tipos -->
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="250">
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">📊</span>
+            Costos por Mes (últimos 6 meses)
+        </div>
+        <div class="card-body">
+            <canvas id="costosChart" style="max-height:220px;"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🔧</span>
+            Tipos de Mantenimiento
+        </div>
+        <div class="card-body" style="display:flex; justify-content:center;">
+            <canvas id="tiposChart" style="max-width:260px; max-height:220px;"></canvas>
+        </div>
+    </div>
+</div>
+
 <!-- Predictions Table -->
 <div class="card mb-3" data-aos="fade-up" data-aos-delay="300">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -314,6 +336,53 @@
                 cutout: '65%',
                 plugins: {
                     legend: { position: 'bottom', labels: { padding: 16, font: { family: 'Inter', size: 12 } } }
+                }
+            }
+        });
+    }
+
+    const ctxCostos = document.getElementById('costosChart');
+    if (ctxCostos) {
+        new Chart(ctxCostos, {
+            type: 'bar',
+            data: {
+                labels: {{ labels_costos | tojson }},
+                datasets: [{
+                    label: 'Costo ($)',
+                    data: {{ valores_costos | tojson }},
+                    backgroundColor: 'rgba(99, 102, 241, 0.75)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: 'Inter', size: 11 } } },
+                    x: { ticks: { font: { family: 'Inter', size: 11 } } }
+                }
+            }
+        });
+    }
+
+    const ctxTipos = document.getElementById('tiposChart');
+    if (ctxTipos) {
+        new Chart(ctxTipos, {
+            type: 'doughnut',
+            data: {
+                labels: {{ labels_tipos | tojson }},
+                datasets: [{
+                    data: {{ valores_tipos | tojson }},
+                    backgroundColor: ['#f59e0b', '#10b981', '#ef4444', '#6366f1'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                cutout: '60%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 14, font: { family: 'Inter', size: 12 } } }
                 }
             }
         });

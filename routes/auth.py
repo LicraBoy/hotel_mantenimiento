@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, session, flash
 from functools import wraps
 from database.db import conectar
+from extensions import limiter
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -36,8 +37,14 @@ def requiere_login(f):
 # Login
 # ===============================
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     if request.method == "POST":
+        # Bloqueo por intentos fallidos acumulados en sesión
+        intentos = session.get("login_intentos", 0)
+        if intentos >= 5:
+            return render_template("login.html", error="Demasiados intentos fallidos. Espera un momento.")
+
         username = request.form["username"]
         password = request.form["password"]
 
@@ -50,15 +57,17 @@ def login():
         user = cursor.fetchone()
         cursor.close()
         conn.close()
-        
+
         from werkzeug.security import check_password_hash
 
         if user and check_password_hash(user[2], password):
+            session.pop("login_intentos", None)
             session["user_id"] = user[0]
             session["user"] = user[1]
             session["rol"] = user[3] if user[3] else 'empleado'
             return redirect("/dashboard")
 
+        session["login_intentos"] = intentos + 1
         return render_template("login.html", error="Usuario o contraseña incorrecta")
 
     return render_template("login.html")

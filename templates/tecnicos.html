@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% set active_page = 'tecnicos' %}
+{% block title %}Ranking de Técnicos — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>👷 Técnicos — Ranking de Rendimiento</h1>
+        <span class="subtitle">Score compuesto: eficiencia temporal + volumen + carga de trabajo</span>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">👥</div>
+        <div class="label">Total Técnicos</div>
+        <div class="value">{{ ranking | length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">⏱️</div>
+        <div class="label">Tiempo Promedio</div>
+        <div class="value">
+            {% if ranking %}
+                {{ "%.1f" | format(ranking | map(attribute='avg_tiempo') | list | sum / (ranking | length)) }}h
+            {% else %}
+                —
+            {% endif %}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">🔧</div>
+        <div class="label">Trabajos Totales</div>
+        <div class="value">{{ ranking | map(attribute='total_trabajos') | list | sum }}</div>
+    </div>
+</section>
+
+<!-- Ranking Table -->
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">🏆</span>
+        Ranking Global
+    </div>
+    <div class="card-body">
+        {% if ranking %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Técnico</th>
+                        <th>Score Global</th>
+                        <th>Especialidad</th>
+                        <th>Trabajos</th>
+                        <th>Tiempo Prom.</th>
+                        <th>Costo Prom.</th>
+                        <th>Carga Actual</th>
+                        <th>Perfil</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in ranking %}
+                    <tr>
+                        <td>
+                            {% if loop.index == 1 %}🥇
+                            {% elif loop.index == 2 %}🥈
+                            {% elif loop.index == 3 %}🥉
+                            {% else %}{{ loop.index }}
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ t.nombre }}</strong></td>
+                        <td>
+                            {% set pct = (t.score_global * 100) | round(0) %}
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="flex:1; background:#e2e8f0; border-radius:4px; height:8px; max-width:100px;">
+                                    <div style="width:{{ pct }}%; background:{% if pct >= 70 %}var(--green){% elif pct >= 40 %}var(--amber){% else %}var(--red){% endif %}; height:100%; border-radius:4px;"></div>
+                                </div>
+                                <span class="text-sm"><strong>{{ pct }}%</strong></span>
+                            </div>
+                        </td>
+                        <td class="text-sm">{{ t.especialidad or '—' }}</td>
+                        <td>{{ t.total_trabajos }}</td>
+                        <td>{{ "%.1f" | format(t.avg_tiempo) }}h</td>
+                        <td>${{ "%.0f" | format(t.avg_costo) }}</td>
+                        <td>
+                            <span class="badge {% if t.carga_actual == 0 %}badge-green{% elif t.carga_actual <= 3 %}badge-amber{% else %}badge-red{% endif %}">
+                                {{ t.carga_actual }} tareas
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/tecnicos/perfil/{{ t.tecnico_id }}" class="btn btn-outline btn-sm">Ver</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">👷</span>
+            <div class="empty-text">No hay técnicos registrados. Agrega empleados desde Administración.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

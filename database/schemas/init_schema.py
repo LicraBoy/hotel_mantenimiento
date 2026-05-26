@@ -73,7 +73,7 @@ def crear_tablas():
     conn.commit()
     cursor.close()
     conn.close()
-    print("✅ Tablas creadas correctamente en PostgreSQL")
+    print("[OK] Tablas creadas correctamente en PostgreSQL")
 
 
 if __name__ == "__main__":

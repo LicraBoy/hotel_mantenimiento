@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set active_page = 'tecnicos' %}
+{% block title %}Perfil de {{ perfil.nombre }} — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>👷 {{ perfil.nombre }}</h1>
+        <span class="subtitle">Perfil de rendimiento — {{ perfil.especialidad or 'Sin especialidad definida' }}</span>
+    </div>
+    <div class="topbar-actions">
+        <a href="/tecnicos" class="btn btn-outline btn-sm">← Ranking</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">🔧</div>
+        <div class="label">Total Trabajos</div>
+        <div class="value">{{ perfil.total_trabajos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">⏱️</div>
+        <div class="label">Tiempo Promedio</div>
+        <div class="value">{{ perfil.avg_tiempo }}h</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">💰</div>
+        <div class="label">Costo Promedio</div>
+        <div class="value">${{ "%.0f" | format(perfil.avg_costo) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap {% if perfil.carga_actual == 0 %}icon-green{% elif perfil.carga_actual <= 3 %}icon-amber{% else %}icon-red{% endif %}">📋</div>
+        <div class="label">Carga Actual</div>
+        <div class="value">{{ perfil.carga_actual }}</div>
+    </div>
+</section>
+
+<!-- Trabajos por tipo -->
+{% if perfil.trabajos_por_tipo %}
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">📊</span>
+        Distribución por Tipo de Equipo
+    </div>
+    <div class="card-body">
+        <canvas id="tipoChart" height="200"></canvas>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if perfil.trabajos_por_tipo %}
+<script>
+    const datos = {{ perfil.trabajos_por_tipo | tojson }};
+    const labels = Object.keys(datos);
+    const values = Object.values(datos);
+    const colores = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#14b8a6'];
+
+    new Chart(document.getElementById('tipoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colores.slice(0, labels.length),
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

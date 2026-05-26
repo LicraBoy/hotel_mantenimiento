@@ -74,7 +74,7 @@ def entrenar():
         return redirect("/predicciones")
 
     try:
-        from ai.train_model import entrenar as train
+        from scripts.train_model import entrenar as train
         resultados = train()
         if resultados:
             dt = resultados.get("decision_tree", {})
@@ -94,7 +94,7 @@ def generar_dataset():
         return redirect("/login")
 
     try:
-        from ai.dataset_generator import generar_dataset as gen
+        from scripts.dataset_generator import generar_dataset as gen
         equipos, fallas = gen()
         flash(f"✅ Dataset generado: {equipos} equipos, {fallas} fallas")
     except Exception as e:

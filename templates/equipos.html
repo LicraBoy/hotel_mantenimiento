@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% set active_page = 'equipos' %}
+{% block title %}Gestión de Equipos — Hotel Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>⚙️ Gestión de Equipos</h1>
+        <span class="subtitle">Registra los equipos de cada habitación para la auto-programación preventiva</span>
+    </div>
+    <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="document.getElementById('modalNuevo').style.display='flex'">
+            + Agregar Equipo
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">⚙️</div>
+        <div class="label">Total Equipos</div>
+        <div class="value">{{ equipos | length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🚨</div>
+        <div class="label">Vida Útil Agotada (≥80%)</div>
+        <div class="value">{{ equipos | selectattr('pct_vida', 'ge', 80) | list | length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">✅</div>
+        <div class="label">En Buen Estado (&lt;80%)</div>
+        <div class="value">{{ equipos | selectattr('pct_vida', 'lt', 80) | list | length }}</div>
+    </div>
+</section>
+
+<!-- Tabla de equipos -->
+<div class="card" data-aos="fade-up" data-aos-delay="100">
+    <div class="card-header">
+        <span class="h-icon">📋</span>
+        Equipos Registrados
+    </div>
+    <div class="card-body">
+        {% if equipos %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Habitación</th>
+                        <th>Tipo de Equipo</th>
+                        <th>Fecha Instalación</th>
+                        <th>Vida Útil</th>
+                        <th>% Consumido</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eq in equipos %}
+                    <tr>
+                        <td><strong>#{{ eq.habitacion }}</strong></td>
+                        <td>{{ eq.tipo }}</td>
+                        <td>{{ eq.fecha_instalacion.strftime('%d/%m/%Y') if eq.fecha_instalacion else '—' }}</td>
+                        <td>{{ eq.vida_util_anos }} años</td>
+                        <td>
+                            {% if eq.pct_vida is not none %}
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="flex:1; background:var(--border); border-radius:4px; height:6px;">
+                                    <div style="width:{{ [eq.pct_vida, 100] | min }}%; height:6px; border-radius:4px;
+                                        background:{% if eq.pct_vida >= 100 %}var(--red){% elif eq.pct_vida >= 80 %}var(--amber){% else %}var(--green){% endif %};"></div>
+                                </div>
+                                <span class="text-sm">{{ eq.pct_vida }}%</span>
+                            </div>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if eq.pct_vida is none %}
+                            <span class="badge">Sin datos</span>
+                            {% elif eq.pct_vida >= 100 %}
+                            <span class="badge badge-red">Vida útil agotada</span>
+                            {% elif eq.pct_vida >= 80 %}
+                            <span class="badge badge-amber">Preventivo sugerido</span>
+                            {% else %}
+                            <span class="badge badge-green">Operativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/equipos/{{ eq.id }}/historial" class="btn btn-outline btn-sm">📋 Historial</a>
+                            <a href="/equipos/editar/{{ eq.id }}" class="btn btn-outline btn-sm">✏️ Editar</a>
+                            <form method="POST" action="/equipos/eliminar/{{ eq.id }}" style="display:inline;"
+                                  onsubmit="return confirm('¿Eliminar este equipo?')">
+                                <button class="btn btn-outline btn-sm" style="color:var(--red); border-color:var(--red);">
+                                    🗑️
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">⚙️</span>
+            <div class="empty-text">No hay equipos registrados. Haz clic en "Agregar Equipo" para comenzar.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: Nuevo Equipo -->
+<div id="modalNuevo" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+     z-index:1000; align-items:center; justify-content:center;">
+    <div class="card" style="width:480px; max-width:95vw;">
+        <div class="card-header">
+            <span class="h-icon">➕</span>
+            Agregar Equipo
+            <button onclick="document.getElementById('modalNuevo').style.display='none'"
+                    style="margin-left:auto; background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/equipos/nuevo">
+                <div class="form-group">
+                    <label>Habitación</label>
+                    <select name="habitacion_id" required class="form-control">
+                        <option value="">Seleccionar habitación...</option>
+                        {% for hab_id, hab_num in habitaciones %}
+                        <option value="{{ hab_id }}">Habitación #{{ hab_num }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Equipo</label>
+                    <select name="tipo" id="tipoSelect" required class="form-control" onchange="toggleOtro(this)">
+                        <option value="">Seleccionar tipo...</option>
+                        {% for t in tipos %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" id="otroGroup" style="display:none;">
+                    <label>Especifica el tipo</label>
+                    <input type="text" name="tipo_otro" class="form-control" placeholder="Ej: Generador eléctrico">
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Instalación</label>
+                    <input type="date" name="fecha_instalacion" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Vida Útil Estimada (años)</label>
+                    <input type="number" name="vida_util_anos" required class="form-control"
+                           min="1" max="50" step="0.5" placeholder="Ej: 5">
+                    <small class="text-muted">El equipo se considerará para mantenimiento preventivo cuando supere el 80% de su vida útil.</small>
+                </div>
+                <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+                    <button type="button" class="btn btn-outline"
+                            onclick="document.getElementById('modalNuevo').style.display='none'">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Equipo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleOtro(select) {
+    document.getElementById('otroGroup').style.display = select.value === 'Otro' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

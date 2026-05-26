@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% set active_page = 'operaciones' %}
+{% block title %}Centro de Operaciones IA — Hotel Mantenimiento{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="topbar" data-aos="fade-down">
+    <div>
+        <h1>🎯 Centro de Operaciones IA</h1>
+        <span class="subtitle">Vista unificada de todos los subsistemas de inteligencia artificial</span>
+    </div>
+</div>
+
+{% if resumen.get('error') %}
+<div class="flash-msg" style="background:var(--red); color:white;">
+    ⚠️ Error cargando datos: {{ resumen.error }}
+</div>
+{% else %}
+
+<!-- KPIs principales -->
+<section class="stats-grid" data-aos="fade-up">
+    <div class="stat-card">
+        <div class="icon-wrap icon-primary">⚙️</div>
+        <div class="label">MTBF (días)</div>
+        <div class="value">{{ resumen.kpis.mtbf_dias }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-amber">🔧</div>
+        <div class="label">MTTR (horas)</div>
+        <div class="value">{{ resumen.kpis.mttr_horas }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-green">📊</div>
+        <div class="label">Disponibilidad</div>
+        <div class="value">{{ resumen.kpis.disponibilidad_pct }}%</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon-wrap icon-red">🚨</div>
+        <div class="label">Alertas Activas</div>
+        <div class="value">{{ resumen.alertas | length }}</div>
+    </div>
+</section>
+
+<!-- Grid de subsistemas -->
+<div class="grid-2col" data-aos="fade-up" data-aos-delay="100">
+
+    <!-- Predicciones de Falla -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🤖</span>
+            Predicciones de Falla
+            <a href="/predicciones" class="btn btn-outline btn-sm" style="margin-left:auto;">Ver más →</a>
+        </div>
+        <div class="card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Total</div>
+                    <div class="value" style="font-size:1.5rem;">{{ resumen.predicciones.total }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Críticos</div>
+                    <div class="value" style="font-size:1.5rem; color:var(--red);">{{ resumen.predicciones.criticos }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Alto Riesgo</div>
+                    <div class="value" style="font-size:1.5rem; color:var(--amber);">{{ resumen.predicciones.altos }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Medio</div>
+                    <div class="value" style="font-size:1.5rem; color:var(--teal);">{{ resumen.predicciones.medios }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Costos Estimados -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">💰</span>
+            Costos Estimados
+            <a href="/costos" class="btn btn-outline btn-sm" style="margin-left:auto;">Ver más →</a>
+        </div>
+        <div class="card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Total Estimado</div>
+                    <div class="value" style="font-size:1.3rem;">${{ "{:,.0f}".format(resumen.costos.estimado_total) }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Promedio</div>
+                    <div class="value" style="font-size:1.3rem;">${{ "{:,.0f}".format(resumen.costos.promedio) }}</div>
+                </div>
+            </div>
+            {% if resumen.costos.top_equipos %}
+            <div style="margin-top:8px;">
+                <div class="text-sm text-muted" style="margin-bottom:4px;">Top equipos más costosos:</div>
+                {% for tipo, costo in resumen.costos.top_equipos %}
+                <span class="badge badge-amber" style="margin-right:4px;">{{ tipo }}: ${{ "%.0f" | format(costo) }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Limpieza -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">🧹</span>
+            Limpieza Inteligente
+            <a href="/limpieza" class="btn btn-outline btn-sm" style="margin-left:auto;">Ver más →</a>
+        </div>
+        <div class="card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Pendientes</div>
+                    <div class="value" style="font-size:1.5rem;">{{ resumen.limpieza.pendientes }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Críticas</div>
+                    <div class="value" style="font-size:1.5rem; color:var(--red);">{{ resumen.limpieza.criticas }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Score Prom.</div>
+                    <div class="value" style="font-size:1.5rem;">{{ resumen.limpieza.score_promedio }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-Programación -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">📅</span>
+            Auto-Programación
+            <a href="/automatizacion" class="btn btn-outline btn-sm" style="margin-left:auto;">Ver más →</a>
+        </div>
+        <div class="card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Planes Pendientes</div>
+                    <div class="value" style="font-size:1.5rem;">{{ resumen.scheduler.planes_pendientes }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Costo Plan</div>
+                    <div class="value" style="font-size:1.3rem;">${{ "{:,.0f}".format(resumen.scheduler.costo_estimado_plan) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Técnicos -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">👷</span>
+            Equipo Técnico
+            <a href="/tecnicos" class="btn btn-outline btn-sm" style="margin-left:auto;">Ver más →</a>
+        </div>
+        <div class="card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Técnicos Activos</div>
+                    <div class="value" style="font-size:1.5rem;">{{ resumen.tecnicos.total_activos }}</div>
+                </div>
+                <div class="stat-card" style="border:none; padding:8px;">
+                    <div class="label">Carga Promedio</div>
+                    <div class="value" style="font-size:1.5rem;">{{ resumen.tecnicos.carga_promedio }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disponibilidad -->
+    <div class="card">
+        <div class="card-header">
+            <span class="h-icon">📈</span>
+            Indicadores Clave (KPIs)
+        </div>
+        <div class="card-body">
+            <canvas id="kpiChart" height="180"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas -->
+{% if resumen.alertas %}
+<div class="card mt-3" data-aos="fade-up" data-aos-delay="200">
+    <div class="card-header">
+        <span class="h-icon">🔔</span>
+        Alertas Activas
+        <span class="badge badge-red" style="margin-left:auto;">{{ resumen.alertas | length }}</span>
+    </div>
+    <div class="card-body">
+        {% for alerta in resumen.alertas %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border);">
+            <div>
+                <span class="badge {% if alerta.nivel == 'CRÍTICO' %}badge-red{% elif alerta.nivel == 'ALTO' %}badge-amber{% else %}badge-primary{% endif %}">
+                    {{ alerta.nivel }}
+                </span>
+                <span style="margin-left:8px;">{{ alerta.mensaje }}</span>
+                <span class="text-sm text-muted" style="margin-left:8px;">{{ alerta.fecha }}</span>
+            </div>
+            <form method="POST" action="/operaciones/alertas/leer/{{ alerta.id }}" style="display:inline;">
+                <button type="submit" class="btn btn-outline btn-sm">✓</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not resumen.get('error') %}
+<script>
+    // Gauge-like chart for KPIs
+    new Chart(document.getElementById('kpiChart'), {
+        type: 'bar',
+        data: {
+            labels: ['MTBF (días)', 'MTTR (horas)', 'Disponibilidad (%)'],
+            datasets: [{
+                data: [
+                    {{ resumen.kpis.mtbf_dias }},
+                    {{ resumen.kpis.mttr_horas }},
+                    {{ resumen.kpis.disponibilidad_pct }}
+                ],
+                backgroundColor: ['rgba(79,70,229,0.6)', 'rgba(245,158,11,0.6)', 'rgba(16,185,129,0.6)'],
+                borderColor: ['#4f46e5', '#f59e0b', '#10b981'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#e2e8f0' } }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

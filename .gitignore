@@ -1,5 +1,88 @@
+# ================================
+# Entorno Virtual
+# ================================
 venv/
+.venv/
+env/
+
+# ================================
+# Python
+# ================================
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ================================
+# Variables de entorno (secretos)
+# ================================
 .env
+.env.local
+.env.*.local
+
+# ================================
+# Base de datos local
+# ================================
+*.db
+*.sqlite3
+*.sqlite
+
+# ================================
+# Modelos de IA (archivos grandes)
+# ================================
+*.pt
+*.pth
+*.onnx
+*.pkl
+ai/models/*.pkl
+ai/models/*.joblib
+ai/models/*.h5
+
+# ================================
+# Archivos generados / temporales
+# ================================
+*.pdf
+test.png
+uploads/
+*.log
+*.tmp
+
+# ================================
+# Docker
+# ================================
+# (docker-compose.yml SÍ se sube, pero no datos persistentes)
+postgres_data/
+pgdata/
+
+# ================================
+# Pytest / Testing
+# ================================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ================================
+# IDEs y editores
+# ================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ================================
+# Sistema operativo
+# ================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ================================
+# Node (por si acaso)
+# ================================
 node_modules/

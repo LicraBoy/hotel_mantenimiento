@@ -1,7 +1,7 @@
 """
 Generador de Dataset Sintético
 Crea 2 años de datos de mantenimiento para un hotel de 100 habitaciones
-Ejecutar: python ai/dataset_generator.py
+Ejecutar desde la raíz del proyecto: python scripts/dataset_generator.py
 """
 import os, sys, random
 from datetime import datetime, timedelta
